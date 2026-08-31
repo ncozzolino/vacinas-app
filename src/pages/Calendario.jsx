@@ -184,7 +184,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
                     <span style={{ flex: 1 }}>
                       <span style={{
                         display: 'block', fontSize: 13.5,
-                        color: aplicada ? 'var(--ink-soft)' : 'var(--ink)',
+                        color: aplicada ? 'var(--ink-soft)' : d.status === 'atrasada' ? 'var(--red-deep)' : 'var(--ink)',
                         textDecoration: aplicada ? 'line-through' : 'none',
                       }}>
                         {d.vacinaNome} — {d.dose}ª dose
@@ -192,6 +192,11 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
                       {aplicada && d.dataAplicacao && (
                         <span style={{ display: 'block', fontSize: 11, color: 'var(--green-deep)', fontWeight: 600 }}>
                           aplicada em {paraDataLocal(d.dataAplicacao).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
+                      {!aplicada && d.status === 'atrasada' && (
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--red-deep)', fontWeight: 600 }}>
+                          atrasada
                         </span>
                       )}
                     </span>

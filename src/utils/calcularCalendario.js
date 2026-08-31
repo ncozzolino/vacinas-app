@@ -64,6 +64,7 @@ function paraMeiaNoite(date) {
  */
 export function gerarDosesDaCrianca(dataNascimentoISO, datasAplicacao = {}) {
   const doses = []
+  const hoje = paraMeiaNoite(new Date())
 
   for (const vacina of vacinasData.vacinas) {
     let deslocamentoDias = 0 // atraso/adiantamento da última dose confirmada desta vacina
@@ -93,7 +94,7 @@ export function gerarDosesDaCrianca(dataNascimentoISO, datasAplicacao = {}) {
         dataAplicacao: dataConfirmadaISO,
         obs: item.obs || null,
         viaAdministracao: vacina.via_administracao || 'Injetável (picada)',
-        status: dataConfirmada ? 'aplicada' : 'pendente',
+        status: dataConfirmada ? 'aplicada' : (dataPrevista < hoje ? 'atrasada' : 'pendente'),
       })
     }
   }
@@ -171,6 +172,14 @@ export function agruparPorSemana(doses) {
 export function proximoDiaDeVisita(diasAgrupados) {
   const hoje = paraMeiaNoite(new Date())
   return diasAgrupados.find(
-    (dia) => dia.data >= hoje && dia.doses.some((d) => d.status === 'pendente')
+    (dia) => dia.data >= hoje && dia.doses.some((d) => d.status !== 'aplicada')
   )
+}
+
+/**
+ * Lista achatada de doses atrasadas (previstas no passado e ainda não
+ * confirmadas) — usada no banner de alerta da Home.
+ */
+export function dosesAtrasadas(doses) {
+  return doses.filter((d) => d.status === 'atrasada')
 }

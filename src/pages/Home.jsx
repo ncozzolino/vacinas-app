@@ -1,4 +1,4 @@
-import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita } from '../utils/calcularCalendario'
+import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita, dosesAtrasadas } from '../utils/calcularCalendario'
 import mascoteEspera from '../assets/mascote-espera.webp'
 import mascoteComemorando from '../assets/mascote-comemorando.webp'
 
@@ -29,11 +29,24 @@ export default function Home({ crianca, irPara }) {
   const total = doses.length
   const feitas = doses.filter((d) => d.status === 'aplicada').length
   const emDia = total - feitas === 0
+  const atrasadas = dosesAtrasadas(doses)
 
   return (
     <div style={{ padding: '34px 20px', maxWidth: 480, margin: '0 auto' }}>
       <p style={{ color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600 }}>Boa tarde</p>
       <h1 className="display" style={{ fontSize: 20 }}>{crianca.nome}</h1>
+
+      {atrasadas.length > 0 && (
+        <div className="tap-scale" style={bannerAtrasoStyle} onClick={() => irPara('calendario')}>
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.03em', margin: 0, color: 'var(--red-deep)' }}>
+            ⚠️ {atrasadas.length} DOSE{atrasadas.length > 1 ? 'S' : ''} ATRASADA{atrasadas.length > 1 ? 'S' : ''}
+          </p>
+          <p style={{ fontSize: 12.5, margin: '4px 0 0', color: 'var(--red-deep)' }}>
+            {atrasadas.slice(0, 3).map((d) => `${d.vacinaNome} (${d.dose}ª dose)`).join(' · ')}
+            {atrasadas.length > 3 && ` e mais ${atrasadas.length - 3}`}
+          </p>
+        </div>
+      )}
 
       <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
         <AnelProgresso total={total} feitas={feitas} />
@@ -72,4 +85,9 @@ export default function Home({ crianca, irPara }) {
 const cardStyle = {
   background: 'var(--card)', borderRadius: 'var(--radius)', padding: 20,
   boxShadow: 'var(--shadow-card)',
+}
+const bannerAtrasoStyle = {
+  background: 'var(--red-tint)', border: '1px solid var(--red)',
+  borderRadius: 16, padding: '12px 16px', marginTop: 14, marginBottom: 16,
+  cursor: 'pointer', boxShadow: 'var(--shadow-card)',
 }
