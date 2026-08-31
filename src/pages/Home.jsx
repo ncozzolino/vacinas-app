@@ -11,7 +11,7 @@ export default function Home({ crianca, irPara }) {
   const feitas = doses.filter((d) => d.status === 'aplicada').length
 
   return (
-    <div style={{ padding: '34px 20px' }}>
+    <div style={{ padding: '34px 20px', maxWidth: 480, margin: '0 auto' }}>
       <p style={{ color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600 }}>Boa tarde</p>
       <h1 className="display" style={{ fontSize: 20 }}>{crianca.nome}</h1>
 

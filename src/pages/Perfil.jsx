@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { signOut } from 'firebase/auth'
 import { doc, updateDoc } from 'firebase/firestore'
 import { auth, db } from '../firebase'
+import { paraDataLocal } from '../utils/calcularCalendario'
 
 export default function Perfil({ crianca }) {
   const [emailResponsavel2, setEmailResponsavel2] = useState(crianca.emailResponsavel2 || '')
@@ -18,14 +19,24 @@ export default function Perfil({ crianca }) {
     setSalvo(true)
   }
 
+  const fotoUrl = auth.currentUser?.photoURL
+  const inicial = (crianca.nome || auth.currentUser?.email || '?').charAt(0).toUpperCase()
+
   return (
-    <div style={{ padding: '34px 20px' }}>
+    <div style={{ padding: '34px 20px', maxWidth: 480, margin: '0 auto' }}>
       <h1 className="display" style={{ fontSize: 20 }}>Perfil</h1>
-      <div style={{ ...cardStyle, marginTop: 16 }}>
-        <b style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{crianca.nome}</b>
-        <p style={{ color: 'var(--ink-soft)', fontSize: 13, margin: '4px 0 0' }}>
-          {new Date(crianca.dataNascimento).toLocaleDateString('pt-BR')}
-        </p>
+      <div style={{ ...cardStyle, marginTop: 16, display: 'flex', alignItems: 'center', gap: 14 }}>
+        {fotoUrl ? (
+          <img src={fotoUrl} alt="" referrerPolicy="no-referrer" style={avatarStyle} />
+        ) : (
+          <div style={{ ...avatarStyle, ...avatarFallbackStyle }}>{inicial}</div>
+        )}
+        <div>
+          <b style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>{crianca.nome}</b>
+          <p style={{ color: 'var(--ink-soft)', fontSize: 13, margin: '4px 0 0' }}>
+            {paraDataLocal(crianca.dataNascimento).toLocaleDateString('pt-BR')}
+          </p>
+        </div>
       </div>
       <div style={{ ...cardStyle, marginTop: 12 }}>
         <p style={{ fontSize: 13, margin: 0 }}>{auth.currentUser?.email}</p>
@@ -60,3 +71,8 @@ export default function Perfil({ crianca }) {
 }
 
 const cardStyle = { background: 'var(--card)', borderRadius: 18, padding: 18, boxShadow: 'var(--shadow-card)' }
+const avatarStyle = { width: 56, height: 56, borderRadius: '50%', objectFit: 'cover', flexShrink: 0 }
+const avatarFallbackStyle = {
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: 'var(--blue)', fontFamily: 'var(--font-display)', fontSize: 22, fontWeight: 700,
+}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { auth, db, obterAccessTokenGoogle } from '../firebase'
-import { gerarDosesDaCrianca, agruparPorDiaDeVisita } from '../utils/calcularCalendario'
+import { gerarDosesDaCrianca, agruparPorDiaDeVisita, formatarDataISO } from '../utils/calcularCalendario'
 import DecisionCard from '../components/DecisionCard.jsx'
 import vacinasData from '../data/pni-calendario-vacinal.json'
 
@@ -20,10 +20,11 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   // mostradas como decisão explícita, uma vez cada, no topo do "Meu calendário".
   const vacinasComDecisao = vacinasData.vacinas.filter((v) => v.esquema_particular?.nota_preliminar)
 
-  async function marcarAplicada(vacinaId, dose) {
+  // Alterna entre aplicada/pendente — permite desfazer um toque errado.
+  async function alternarAplicada(vacinaId, dose, novoStatus) {
     const chave = `${vacinaId}_${dose}`
     await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
-      [`dosesConcluidas.${chave}`]: true,
+      [`dosesConcluidas.${chave}`]: novoStatus,
     })
   }
 
@@ -45,7 +46,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
 
       const diasPendentes = dias
         .filter((dia) => dia.doses.some((d) => d.status === 'pendente'))
-        .map((dia) => ({ data: dia.data.toISOString().slice(0, 10), doses: dia.doses }))
+        .map((dia) => ({ data: formatarDataISO(dia.data), doses: dia.doses, totalPicadas: dia.totalPicadas }))
 
       const resp = await fetch('/.netlify/functions/criar-eventos-calendario', {
         method: 'POST',
@@ -54,6 +55,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
           accessToken: token,
           dias: diasPendentes,
           emailConvidado: crianca.emailResponsavel2 || undefined,
+          nomeCrianca: crianca.nome,
         }),
       })
       const resultado = await resp.json()
@@ -68,7 +70,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   }
 
   return (
-    <div style={{ padding: '34px 20px' }}>
+    <div style={{ padding: '34px 20px', maxWidth: 520, margin: '0 auto' }}>
       <h1 className="display" style={{ fontSize: 20 }}>Vacinação</h1>
 
       <div style={{ display: 'flex', gap: 4, background: '#fff', padding: 4, borderRadius: 100, marginTop: 14, boxShadow: 'var(--shadow-card)' }}>
@@ -111,7 +113,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
           ))}
 
           {dias.map((dia) => (
-            <div key={dia.data.toISOString()} style={cardStyle}>
+            <div key={formatarDataISO(dia.data)} style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <b style={{ fontFamily: 'var(--font-display)', fontSize: 15 }}>{dia.data.toLocaleDateString('pt-BR')}</b>
                 <span style={badgeStyle}>{dia.totalPicadas} picada{dia.totalPicadas > 1 ? 's' : ''}</span>
@@ -121,9 +123,10 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
                 return (
                   <div
                     key={`${d.vacinaId}_${d.dose}`}
-                    onClick={() => !aplicada && marcarAplicada(d.vacinaId, d.dose)}
-                    className={aplicada ? undefined : 'tap-scale'}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', cursor: aplicada ? 'default' : 'pointer' }}
+                    onClick={() => alternarAplicada(d.vacinaId, d.dose, !aplicada)}
+                    className="tap-scale"
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', cursor: 'pointer' }}
+                    title={aplicada ? 'Toque para desmarcar' : 'Toque para marcar como aplicada'}
                   >
                     <span style={checkboxStyle(aplicada)}>{aplicada && '✓'}</span>
                     <span style={{

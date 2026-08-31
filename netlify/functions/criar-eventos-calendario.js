@@ -12,22 +12,26 @@ export async function handler(event) {
   }
 
   try {
-    const { accessToken, dias, emailConvidado } = JSON.parse(event.body)
+    const { accessToken, dias, emailConvidado, nomeCrianca } = JSON.parse(event.body)
 
     if (!accessToken || !Array.isArray(dias)) {
       return { statusCode: 400, body: 'Parâmetros inválidos: accessToken e dias são obrigatórios.' }
     }
 
+    const nome = nomeCrianca || 'seu bebê'
     const resultados = []
 
     for (const dia of dias) {
-      const descricao = dia.doses
+      const totalPicadas = dia.totalPicadas ?? dia.doses.length
+      const descricaoVacinas = dia.doses
         .map((d) => `• ${d.vacinaNome} — ${d.dose}ª dose`)
         .join('\n')
 
       const evento = {
-        summary: `Vacina${dia.doses.length > 1 ? 's' : ''}: ${dia.doses.length} picada${dia.doses.length > 1 ? 's' : ''}`,
-        description: descricao,
+        summary: `💉 Dia de vacina — ${nome}`,
+        description:
+          `${totalPicadas} picada${totalPicadas > 1 ? 's' : ''} hoje:\n\n${descricaoVacinas}\n\n` +
+          `Leve a caderneta de vacinação. Depois da picada, um carinho extra sempre ajuda 💙`,
         start: { date: dia.data }, // evento de dia inteiro, formato AAAA-MM-DD
         end: { date: dia.data },
         attendees: emailConvidado ? [{ email: emailConvidado }] : [],

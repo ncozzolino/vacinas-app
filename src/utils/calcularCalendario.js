@@ -5,11 +5,31 @@
 
 import vacinasData from '../data/pni-calendario-vacinal.json'
 
+// new Date('AAAA-MM-DD') interpreta a string como meia-noite em UTC, não no
+// fuso local — no Brasil (UTC-3) isso faz a data "vazar" pro dia anterior
+// depois de qualquer conversão para local (toLocaleDateString, getDate etc).
+// Por isso construímos a data manualmente em horário local.
+export function paraDataLocal(iso) {
+  const [ano, mes, dia] = iso.split('-').map(Number)
+  return new Date(ano, mes - 1, dia)
+}
+
+/**
+ * Formata uma data (local) como 'AAAA-MM-DD' — sempre usar isto em vez de
+ * toISOString().slice(0,10), que converte pra UTC e pode voltar um dia.
+ */
+export function formatarDataISO(date) {
+  const ano = date.getFullYear()
+  const mes = String(date.getMonth() + 1).padStart(2, '0')
+  const dia = String(date.getDate()).padStart(2, '0')
+  return `${ano}-${mes}-${dia}`
+}
+
 /**
  * Soma um número de meses a uma data de nascimento.
  */
 function somarMeses(dataNascimento, meses) {
-  const d = new Date(dataNascimento)
+  const d = paraDataLocal(dataNascimento)
   d.setMonth(d.getMonth() + meses)
   return d
 }
@@ -51,7 +71,7 @@ export function agruparPorDiaDeVisita(doses) {
   const porData = new Map()
 
   for (const dose of doses) {
-    const chave = dose.dataPrevista.toISOString().slice(0, 10)
+    const chave = formatarDataISO(dose.dataPrevista)
     if (!porData.has(chave)) {
       porData.set(chave, { data: dose.dataPrevista, doses: [] })
     }
@@ -83,6 +103,7 @@ export function marcarComoAplicada(doses, vacinaId, dose) {
  */
 export function proximoDiaDeVisita(diasAgrupados) {
   const hoje = new Date()
+  hoje.setHours(0, 0, 0, 0) // compara só a data, não o horário — não perde o dia de hoje à tarde
   return diasAgrupados.find(
     (dia) => dia.data >= hoje && dia.doses.some((d) => d.status === 'pendente')
   )
