@@ -1,7 +1,13 @@
 import { useState } from 'react'
-import { doc, updateDoc } from 'firebase/firestore'
+import { doc, updateDoc, deleteField } from 'firebase/firestore'
 import { auth, db, obterAccessTokenGoogle } from '../firebase'
-import { gerarDosesDaCrianca, agruparPorDiaDeVisita, formatarDataISO, paraDataLocal } from '../utils/calcularCalendario'
+import {
+  gerarDosesDaCrianca,
+  agruparPorDiaDeVisita,
+  agruparPorSemana,
+  formatarDataISO,
+  paraDataLocal,
+} from '../utils/calcularCalendario'
 import DecisionCard from '../components/DecisionCard.jsx'
 import vacinasData from '../data/pni-calendario-vacinal.json'
 
@@ -10,22 +16,36 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   const [sincronizando, setSincronizando] = useState(false)
   const [sincMsg, setSincMsg] = useState(null) // { tipo: 'ok' | 'erro', texto }
   const [decisoesAbertas, setDecisoesAbertas] = useState(false)
+  const [doseParaConfirmar, setDoseParaConfirmar] = useState(null) // { vacinaId, dose, vacinaNome }
+  const [dataConfirmacao, setDataConfirmacao] = useState('')
 
-  const doses = gerarDosesDaCrianca(crianca.dataNascimento).map((d) => {
-    const chave = `${d.vacinaId}_${d.dose}`
-    return crianca.dosesConcluidas?.[chave] ? { ...d, status: 'aplicada' } : d
-  })
+  const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {})
   const dias = agruparPorDiaDeVisita(doses)
 
   // Vacinas com diferença real de esquema entre SUS e particular —
   // mostradas como decisão explícita, uma vez cada, no topo do "Meu calendário".
   const vacinasComDecisao = vacinasData.vacinas.filter((v) => v.esquema_particular?.nota_preliminar)
 
-  // Alterna entre aplicada/pendente — permite desfazer um toque errado.
-  async function alternarAplicada(vacinaId, dose, novoStatus) {
+  function abrirConfirmacao(vacinaId, dose, vacinaNome) {
+    setDataConfirmacao(formatarDataISO(new Date()))
+    setDoseParaConfirmar({ vacinaId, dose, vacinaNome })
+  }
+
+  // Grava a data REAL em que a dose foi aplicada — é isso que permite ao
+  // app recalcular as próximas doses da mesma vacina se houve atraso.
+  async function confirmarAplicacao() {
+    const { vacinaId, dose } = doseParaConfirmar
     const chave = `${vacinaId}_${dose}`
     await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
-      [`dosesConcluidas.${chave}`]: novoStatus,
+      [`datasAplicacao.${chave}`]: dataConfirmacao,
+    })
+    setDoseParaConfirmar(null)
+  }
+
+  async function desmarcar(vacinaId, dose) {
+    const chave = `${vacinaId}_${dose}`
+    await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
+      [`datasAplicacao.${chave}`]: deleteField(),
     })
   }
 
@@ -35,8 +55,9 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
     })
   }
 
-  // Só sincroniza dias com doses ainda pendentes — não faz sentido criar
-  // evento de agenda para uma visita que já aconteceu.
+  // Sincroniza por SEMANA (não por dia exato) — dá uma margem real pros
+  // pais: "essa semana" em vez de um dia específico que pode não bater com
+  // a agenda do posto. Só semanas com doses ainda pendentes.
   async function sincronizarAgenda() {
     setSincronizando(true)
     setSincMsg(null)
@@ -45,16 +66,21 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
       if (token !== googleAccessToken) onGoogleToken?.(token)
       if (!token) throw new Error('sem token')
 
-      const diasPendentes = dias
-        .filter((dia) => dia.doses.some((d) => d.status === 'pendente'))
-        .map((dia) => ({ data: formatarDataISO(dia.data), doses: dia.doses, totalPicadas: dia.totalPicadas }))
+      const semanasPendentes = agruparPorSemana(doses)
+        .filter((semana) => semana.doses.some((d) => d.status === 'pendente'))
+        .map((semana) => ({
+          inicioSemana: formatarDataISO(semana.inicioSemana),
+          fimSemana: formatarDataISO(semana.fimSemana),
+          doses: semana.doses,
+          totalPicadas: semana.totalPicadas,
+        }))
 
       const resp = await fetch('/.netlify/functions/criar-eventos-calendario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accessToken: token,
-          dias: diasPendentes,
+          semanas: semanasPendentes,
           emailConvidado: crianca.emailResponsavel2 || undefined,
           nomeCrianca: crianca.nome,
         }),
@@ -149,24 +175,60 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
                 return (
                   <div
                     key={`${d.vacinaId}_${d.dose}`}
-                    onClick={() => alternarAplicada(d.vacinaId, d.dose, !aplicada)}
+                    onClick={() => (aplicada ? desmarcar(d.vacinaId, d.dose) : abrirConfirmacao(d.vacinaId, d.dose, d.vacinaNome))}
                     className="tap-scale"
                     style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', cursor: 'pointer' }}
-                    title={aplicada ? 'Toque para desmarcar' : 'Toque para marcar como aplicada'}
+                    title={aplicada ? 'Toque para desmarcar' : 'Toque para confirmar a data de aplicação'}
                   >
                     <span style={checkboxStyle(aplicada)}>{aplicada && '✓'}</span>
-                    <span style={{
-                      fontSize: 13.5,
-                      color: aplicada ? 'var(--ink-soft)' : 'var(--ink)',
-                      textDecoration: aplicada ? 'line-through' : 'none',
-                    }}>
-                      {d.vacinaNome} — {d.dose}ª dose
+                    <span style={{ flex: 1 }}>
+                      <span style={{
+                        display: 'block', fontSize: 13.5,
+                        color: aplicada ? 'var(--ink-soft)' : 'var(--ink)',
+                        textDecoration: aplicada ? 'line-through' : 'none',
+                      }}>
+                        {d.vacinaNome} — {d.dose}ª dose
+                      </span>
+                      {aplicada && d.dataAplicacao && (
+                        <span style={{ display: 'block', fontSize: 11, color: 'var(--green-deep)', fontWeight: 600 }}>
+                          aplicada em {paraDataLocal(d.dataAplicacao).toLocaleDateString('pt-BR')}
+                        </span>
+                      )}
                     </span>
                   </div>
                 )
               })}
             </div>
           ))}
+        </div>
+      )}
+
+      {doseParaConfirmar && (
+        <div style={overlayStyle} onClick={() => setDoseParaConfirmar(null)}>
+          <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
+            <p style={decisionLabelStyle}>Quando foi aplicada?</p>
+            <b style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
+              {doseParaConfirmar.vacinaNome} — {doseParaConfirmar.dose}ª dose
+            </b>
+            <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '6px 0 0' }}>
+              Se a data for diferente da prevista, as próximas doses dessa vacina se ajustam automaticamente.
+            </p>
+            <input
+              type="date"
+              value={dataConfirmacao}
+              max={formatarDataISO(new Date())}
+              onChange={(e) => setDataConfirmacao(e.target.value)}
+              style={inputDataStyle}
+            />
+            <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+              <button className="tap-scale" onClick={() => setDoseParaConfirmar(null)} style={btnModalSecundario}>
+                Cancelar
+              </button>
+              <button className="tap-scale" onClick={confirmarAplicacao} disabled={!dataConfirmacao} style={btnModalPrimario}>
+                Confirmar
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -214,4 +276,25 @@ function checkboxStyle(aplicada) {
     border: aplicada ? 'none' : '2px solid var(--line)',
     transition: 'background-color 0.15s ease, border-color 0.15s ease',
   }
+}
+const overlayStyle = {
+  position: 'fixed', inset: 0, background: 'rgba(51,65,77,0.45)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  padding: 24, zIndex: 100,
+}
+const modalStyle = {
+  background: 'var(--card)', borderRadius: 20, padding: 22, width: '100%', maxWidth: 340,
+  boxShadow: 'var(--shadow-card)',
+}
+const inputDataStyle = {
+  width: '100%', padding: 11, marginTop: 14, borderRadius: 12,
+  border: '1px solid var(--line)', fontSize: 14,
+}
+const btnModalSecundario = {
+  flex: 1, padding: 12, borderRadius: 12, border: '1px solid var(--line)',
+  background: '#fff', fontWeight: 600, fontSize: 13, cursor: 'pointer',
+}
+const btnModalPrimario = {
+  flex: 1, padding: 12, borderRadius: 12, border: 'none',
+  background: 'var(--ink)', color: '#fff', fontWeight: 700, fontSize: 13, cursor: 'pointer',
 }

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, db } from '../firebase'
-import mascoteCapivara from '../assets/mascote-capivara.webp'
+import mascoteBoasVindas from '../assets/mascote-boasvindas.webp'
 
 export default function CadastroCrianca({ onSalvo }) {
   const [nome, setNome] = useState('')
@@ -16,7 +16,7 @@ export default function CadastroCrianca({ onSalvo }) {
       nome,
       dataNascimento, // formato ISO 'AAAA-MM-DD'
       emailResponsavel2: emailResponsavel2 || null, // convidado nos eventos do Google Calendar
-      dosesConcluidas: {}, // preenchido conforme o pai marca doses como aplicadas
+      datasAplicacao: {}, // { "<vacinaId>_<dose>": "AAAA-MM-DD" } — preenchido quando o pai confirma a data real de cada dose
       esquemaEscolhido: {}, // { vacinaId: 'sus' | 'particular' } — preenchido nas decisões de esquema
       criadoEm: new Date().toISOString(),
     }
@@ -31,7 +31,7 @@ export default function CadastroCrianca({ onSalvo }) {
   return (
     <div style={{ maxWidth: 380, margin: '0 auto', padding: '40px 24px' }}>
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <img src={mascoteCapivara} alt="" style={{ width: 160, height: 'auto' }} />
+        <img src={mascoteBoasVindas} alt="" style={{ width: 160, height: 'auto' }} />
       </div>
       <h1 className="display" style={{ fontSize: 22, textAlign: 'center' }}>Vamos começar</h1>
       <p style={{ color: 'var(--ink-soft)', marginBottom: 28, textAlign: 'center' }}>

@@ -1,6 +1,6 @@
 import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita } from '../utils/calcularCalendario'
-import mascoteTermometro from '../assets/mascote-termometro.webp'
-import mascoteCoracao from '../assets/mascote-coracao.webp'
+import mascoteEspera from '../assets/mascote-espera.webp'
+import mascoteComemorando from '../assets/mascote-comemorando.webp'
 
 function AnelProgresso({ total, feitas, size = 60 }) {
   const pct = total > 0 ? feitas / total : 0
@@ -23,10 +23,7 @@ function AnelProgresso({ total, feitas, size = 60 }) {
 }
 
 export default function Home({ crianca, irPara }) {
-  const doses = gerarDosesDaCrianca(crianca.dataNascimento).map((d) => {
-    const chave = `${d.vacinaId}_${d.dose}`
-    return crianca.dosesConcluidas?.[chave] ? { ...d, status: 'aplicada' } : d
-  })
+  const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {})
   const dias = agruparPorDiaDeVisita(doses)
   const proximo = proximoDiaDeVisita(dias)
   const total = doses.length
@@ -47,7 +44,7 @@ export default function Home({ crianca, irPara }) {
           </p>
         </div>
         <img
-          src={emDia ? mascoteCoracao : mascoteTermometro}
+          src={emDia ? mascoteComemorando : mascoteEspera}
           alt=""
           style={{ width: 52, height: 'auto', flexShrink: 0 }}
         />
