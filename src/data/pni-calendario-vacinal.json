@@ -1,0 +1,288 @@
+{
+  "_meta": {
+    "fonte_primaria": "Ministério da Saúde — Calendário Nacional de Vacinação (SUS)",
+    "url_fonte": "https://www.gov.br/saude/pt-br/vacinacao/calendario",
+    "consultado_em": "2026-08-29",
+    "escopo": "Criança (0 a 9 anos, 11m, 29d) + itens de Adolescente até 14 anos, conforme escopo definido para o app",
+    "observacao_importante": "Os campos 'esquema_particular' NÃO vêm da fonte oficial (que cobre apenas o esquema SUS) e seguem pendentes de validação. Os campos de reações/contraindicações foram preenchidos apenas onde encontrei respaldo em fonte confiável (Ministério da Saúde ou Sociedade Brasileira de Pediatria) — o restante segue 'pendente_revisao_clinica' por princípio: prefiro deixar em branco a inventar conteúdo de saúde."
+  },
+  "_referencias_clinicas_gerais": {
+    "fontes": [
+      "Ministério da Saúde. Manual de Vigilância Epidemiológica de Eventos Adversos Pós-Vacinação, 4ª ed. (2020/2021, atualizado 2026) — gov.br/saude",
+      "Sociedade Brasileira de Pediatria (SBP) — 'Dúvidas frequentes em vacinação', sbp.com.br/pediatria-para-familias/vacinas"
+    ],
+    "reacoes_comuns_a_maioria_das_vacinas": [
+      "Febre",
+      "Dor, endurecimento e vermelhidão no local da aplicação",
+      "Cada vacina pode ter reações um pouco diferentes, mas a maioria das reações NÃO contraindica continuar o esquema vacinal (fonte: SBP)"
+    ],
+    "quando_procurar_um_medico_regra_geral": [
+      "Febre alta persistente que não melhora com antitérmico",
+      "Choro persistente e inconsolável",
+      "Episódio hipotônico-hiporresponsivo (perda de força/consciência)",
+      "Convulsões",
+      "Sinais de reação alérgica grave (anafilaxia) — ocorre na primeira hora após a vacina, é rara (fonte MS: cerca de 1 em 600.000 vacinados)",
+      "Abscesso no local (quente ou frio) — deve ser notificado"
+    ],
+    "nota": "Isso é uma base geral aplicável à maioria das vacinas injetáveis. Reações específicas de cada vacina (quando encontradas) estão no campo 'reacoes_comuns' de cada item; o restante segue pendente.",
+    "duvidas_frequentes_dos_pais_fonte_sbp": [
+      "Criança em uso de antibiótico pode vacinar normalmente, desde que esteja bem — antibiótico não contraindica vacinação",
+      "Não é necessário fazer 'teste do ovo' antes da vacina de febre amarela ou influenza, mesmo que a criança nunca tenha comido ovo — essa prática não tem recomendação médica",
+      "Se a criança teve febre em doses anteriores, isso não contraindica continuar o esquema vacinal"
+    ]
+  },
+  "vacinas": [
+    {
+      "id": "hepatite_b",
+      "nome_sus": "Vacina hepatite B",
+      "doencas_evitadas": ["Hepatite B", "Hepatite D"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 0, "idade_label": "Ao nascer", "obs": null },
+        { "dose": 2, "idade_alvo_meses": 2, "idade_label": "2 meses", "obs": "Aplicada dentro da vacina Penta" },
+        { "dose": 3, "idade_alvo_meses": 6, "idade_label": "6 meses", "obs": "Aplicada dentro da vacina Penta" }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "1ª dose isolada ao nascer; 2ª e 3ª normalmente combinadas na Hexavalente" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "bcg",
+      "nome_sus": "Vacina BCG",
+      "doencas_evitadas": ["Formas graves e disseminadas da tuberculose", "Efeito protetor contra hanseníase"],
+      "esquema_sus": [
+        { "dose": "única", "idade_alvo_meses": 0, "idade_label": "Ao nascer", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "Não disponível na rede particular no Brasil" },
+      "reacoes_comuns": {
+        "fonte": "Manual de Eventos Adversos Pós-Vacinação, Ministério da Saúde",
+        "texto": "Reação local esperada (não é efeito adverso): pápula que evolui para pequena úlcera e cicatriz em algumas semanas — é o processo normal de resposta da BCG. Ocasionalmente, gânglio aumentado na axila (linfadenite) ou abscesso local por falha técnica de aplicação."
+      },
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "penta",
+      "nome_sus": "Vacina penta (DTP+Hib+HB)",
+      "doencas_evitadas": ["Difteria", "Tétano", "Coqueluche", "Infecções por H. influenzae b", "Hepatite B"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 2, "idade_label": "2 meses", "obs": null },
+        { "dose": 2, "idade_alvo_meses": 4, "idade_label": "4 meses", "obs": null },
+        { "dose": 3, "idade_alvo_meses": 6, "idade_label": "6 meses", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "Hexavalente (soma pólio na mesma picada) — nome comercial e nº de doses a confirmar" },
+      "reacoes_comuns": {
+        "fonte": "SBP + Manual MS de Eventos Adversos",
+        "texto": "Febre, dor/vermelhidão/endurecimento no local (comum a toda a família DTP). Reações sistêmicas menos comuns: irritabilidade, sonolência, choro persistente. A febre é esperada e não deve interromper o esquema vacinal (fonte: SBP)."
+      },
+      "quando_procurar_medico": {
+        "fonte": "Manual MS de Eventos Adversos",
+        "texto": "Ver regra geral em '_referencias_clinicas_gerais' — vale para esta vacina, com atenção especial a episódio hipotônico-hiporresponsivo, historicamente mais associado ao componente pertussis (coqueluche) da DTP."
+      },
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "vip",
+      "nome_sus": "Vacina poliomielite inativada (VIP)",
+      "doencas_evitadas": ["Poliomielite (paralisia infantil)"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 2, "idade_label": "2 meses", "obs": null },
+        { "dose": 2, "idade_alvo_meses": 4, "idade_label": "4 meses", "obs": null },
+        { "dose": 3, "idade_alvo_meses": 6, "idade_label": "6 meses", "obs": null },
+        { "dose": "reforço 1", "idade_alvo_meses": 15, "idade_label": "15 meses", "obs": null },
+        { "dose": "reforço 2", "idade_alvo_meses": 48, "idade_label": "4 anos", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "Geralmente incluída na Hexavalente nas doses iniciais" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "rotavirus",
+      "nome_sus": "Vacina rotavírus humano",
+      "doencas_evitadas": ["Gastrenterite viral (diarreia e vômitos)"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 2, "idade_label": "2 meses", "obs": "1ª dose entre 1m15d e 3m15d — perde a janela após isso" },
+        { "dose": 2, "idade_alvo_meses": 4, "idade_label": "4 meses", "obs": "2ª dose até 7m29d; intervalo mínimo 30 dias" }
+      ],
+      "via_administracao": "Oral (não é picada)",
+      "esquema_particular": { "status": "pendente_revisao_clinica" },
+      "reacoes_comuns": {
+        "fonte": "Sanarmed/literatura pediátrica citando Manual MS",
+        "texto": "Diarreia após a aplicação é uma reação comumente observada com esta vacina especificamente (diferente das demais, que costumam causar reações locais)."
+      },
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "pneumococica",
+      "nome_sus": "Vacina pneumocócica 20-valente / 10-valente",
+      "doencas_evitadas": ["Doenças pneumocócicas invasivas (pneumonia, meningite, otite)"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 2, "idade_label": "2 meses", "obs": null },
+        { "dose": 2, "idade_alvo_meses": 4, "idade_label": "4 meses", "obs": null },
+        { "dose": "reforço", "idade_alvo_meses": 12, "idade_label": "12 meses", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "VPC15 ou VPC20, esquema pode ter 3 doses + reforço" },
+      "reacoes_comuns": {
+        "fonte": "Literatura pediátrica citando padrão de eventos adversos pós-vacinação",
+        "texto": "Dor, edema, vermelhidão e nódulo no local são muito comuns. Também podem ocorrer falta de apetite, sonolência, febre e irritabilidade, com menor frequência."
+      },
+      "quando_procurar_medico": {
+        "fonte": "Mesma literatura",
+        "texto": "Choro inconsolável, episódio hipotônico-hiporresponsivo, convulsão febril ou sinais de anafilaxia — ver regra geral."
+      },
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "meningococica_c",
+      "nome_sus": "Vacina meningocócica C",
+      "doencas_evitadas": ["Doença meningocócica sorogrupo C (meningite, encefalite, meningoencefalite)"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 3, "idade_label": "3 meses", "obs": null },
+        { "dose": 2, "idade_alvo_meses": 5, "idade_label": "5 meses", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "Costuma ser substituída por Meningocócica ACWY na rede particular" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "febre_amarela",
+      "nome_sus": "Vacina febre amarela",
+      "doencas_evitadas": ["Febre amarela e suas complicações"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 9, "idade_label": "9 meses", "obs": null },
+        { "dose": "reforço", "idade_alvo_meses": 48, "idade_label": "4 anos", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica" },
+      "reacoes_comuns": {
+        "fonte": "Sociedade Brasileira de Pediatria (SBP)",
+        "texto": "A partir do 3º ou 4º dia após a vacinação, cerca de 2% a 5% dos vacinados apresentam febre, dor de cabeça e dores musculares."
+      },
+      "quando_procurar_medico": {
+        "fonte": "SBP",
+        "texto": "Eventos adversos graves são raros: reações anafiláticas, doença viscerotrópica e doença neurológica associadas à vacina. Procurar atendimento se surgirem sintomas neurológicos ou sinais de reação alérgica grave."
+      },
+      "contraindicacoes": {
+        "fonte": "SBP",
+        "texto": "Não deve ser aplicada simultaneamente à tríplice viral ou tetraviral em crianças menores de 2 anos — respeitar intervalo mínimo de 30 dias entre elas."
+      }
+    },
+    {
+      "id": "meningococica_acwy",
+      "nome_sus": "Vacina meningocócica ACWY",
+      "doencas_evitadas": ["Doença meningocócica sorogrupos A, C, W-135 e Y"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 12, "idade_label": "12 meses", "obs": null },
+        { "dose": "reforço", "idade_alvo_meses": 132, "idade_label": "11 anos", "obs": "Em caso de atraso, vacinar até 14 anos, 11 meses e 29 dias" }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "triplice_viral",
+      "nome_sus": "Vacina tríplice viral (SCR)",
+      "doencas_evitadas": ["Sarampo", "Caxumba", "Rubéola", "Síndrome da rubéola congênita"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 12, "idade_label": "12 meses", "obs": null },
+        { "dose": 2, "idade_alvo_meses": 15, "idade_label": "15 meses", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "dtp",
+      "nome_sus": "Vacina DTP",
+      "doencas_evitadas": ["Difteria", "Tétano", "Coqueluche"],
+      "esquema_sus": [
+        { "dose": "reforço 1", "idade_alvo_meses": 15, "idade_label": "15 meses", "obs": null },
+        { "dose": "reforço 2", "idade_alvo_meses": 48, "idade_label": "4 anos", "obs": "Válida só até menores de 7 anos; depois usa-se dT" }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "dTpa acelular como equivalente particular" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "varicela",
+      "nome_sus": "Vacina varicela",
+      "doencas_evitadas": ["Varicela (catapora)"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 15, "idade_label": "15 meses", "obs": null },
+        { "dose": 2, "idade_alvo_meses": 48, "idade_label": "4 anos", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "hepatite_a",
+      "nome_sus": "Vacina hepatite A",
+      "doencas_evitadas": ["Hepatite A"],
+      "esquema_sus": [
+        { "dose": "única", "idade_alvo_meses": 15, "idade_label": "15 meses", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "Rede particular costuma usar esquema de 2 doses" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "hpv",
+      "nome_sus": "Vacina HPV4",
+      "doencas_evitadas": ["Infecções pelo papilomavírus humano (tipos 6, 11, 16 e 18)"],
+      "esquema_sus": [
+        { "dose": "única", "idade_alvo_meses": 108, "idade_label": "9 anos", "obs": "Em caso de atraso, vacinar até 14 anos, 11 meses e 29 dias" }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica", "nota_preliminar": "HPV9, geralmente 2 doses com 6 meses de intervalo" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "dengue",
+      "nome_sus": "Vacina dengue DNG4",
+      "doencas_evitadas": ["Dengue causada pelos sorotipos 1, 2, 3 e 4"],
+      "esquema_sus": [
+        { "dose": 1, "idade_alvo_meses": 120, "idade_label": "10 anos", "obs": "Áreas endêmicas prioritárias" },
+        { "dose": 2, "idade_alvo_meses": 123, "idade_label": "10 anos + 3 meses", "obs": "Intervalo de 3 meses entre as doses; mesmo laboratório" }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    },
+    {
+      "id": "dt",
+      "nome_sus": "Vacina dT (dupla adulto)",
+      "doencas_evitadas": ["Difteria", "Tétano"],
+      "esquema_sus": [
+        { "dose": "reforço", "idade_alvo_meses": 168, "idade_label": "14 anos", "obs": null }
+      ],
+      "esquema_particular": { "status": "pendente_revisao_clinica" },
+      "reacoes_comuns": "pendente_revisao_clinica",
+      "quando_procurar_medico": "pendente_revisao_clinica",
+      "contraindicacoes": "pendente_revisao_clinica"
+    }
+  ],
+  "vacinas_sazonais_fora_do_esquema_fixo": [
+    {
+      "id": "influenza",
+      "nome_sus": "Vacina influenza trivalente",
+      "doencas_evitadas": ["Influenza (gripe)"],
+      "regra": "Anual, dos 6 meses aos <6 anos. 1ª vez: 2 doses (30 dias de intervalo). Anos seguintes: 1 dose."
+    },
+    {
+      "id": "covid19",
+      "nome_sus": "Vacina covid-19",
+      "doencas_evitadas": ["Formas graves de covid-19"],
+      "regra": "3 doses (6, 7 e 9 meses, vacina Comirnaty). Imunocomprometidos: reforço a cada 6 meses até 4a11m29d."
+    }
+  ]
+}

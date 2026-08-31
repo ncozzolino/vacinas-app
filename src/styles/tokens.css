@@ -1,0 +1,33 @@
+:root {
+  --bg: #FAF6F0;
+  --card: #FFFFFF;
+  --blue: #AFC9E8;
+  --blue-deep: #5E7FA6;
+  --blue-tint: #EAF1FA;
+  --green: #B9DDC5;
+  --green-deep: #4C8A66;
+  --green-tint: #EEF7F1;
+  --amber: #F3D0A8;
+  --amber-deep: #B9773A;
+  --amber-tint: #FBF1E5;
+  --ink: #33414D;
+  --ink-soft: #8792A0;
+  --line: #EDE7DC;
+  --radius: 22px;
+  --font-display: 'Quicksand', sans-serif;
+  --font-body: 'Inter', sans-serif;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+}
+
+h1, h2, h3, .display {
+  font-family: var(--font-display);
+  font-weight: 700;
+}
