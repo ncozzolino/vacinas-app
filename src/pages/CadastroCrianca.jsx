@@ -57,7 +57,7 @@ export default function CadastroCrianca({ onSalvo }) {
           onChange={(e) => setEmailResponsavel2(e.target.value)}
           style={inputStyle}
         />
-        <button type="submit" disabled={salvando} style={btnPrimary}>
+        <button className="tap-scale" type="submit" disabled={salvando} style={btnPrimary}>
           {salvando ? 'Gerando calendário…' : 'Gerar calendário vacinal'}
         </button>
       </form>
@@ -72,4 +72,5 @@ const inputStyle = {
 const btnPrimary = {
   width: '100%', padding: 14, borderRadius: 14, border: 'none',
   background: 'var(--ink)', color: '#fff', fontWeight: 700, cursor: 'pointer',
+  boxShadow: 'var(--shadow-card)',
 }

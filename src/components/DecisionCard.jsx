@@ -20,12 +20,14 @@ export default function DecisionCard({ vacina, escolhaAtual, onEscolher }) {
       </p>
       <div style={{ display: 'flex', gap: 8 }}>
         <button
+          className="tap-scale"
           onClick={() => onEscolher(vacina.id, 'sus')}
           style={optStyle(escolha === 'sus')}
         >
           SUS
         </button>
         <button
+          className="tap-scale"
           onClick={() => onEscolher(vacina.id, 'particular')}
           style={optStyle(escolha === 'particular')}
         >
@@ -38,7 +40,7 @@ export default function DecisionCard({ vacina, escolhaAtual, onEscolher }) {
 
 const cardStyle = {
   background: 'var(--amber-tint)', border: '1px solid #E8C596',
-  borderRadius: 16, padding: 15, marginBottom: 14,
+  borderRadius: 16, padding: 15, marginBottom: 14, boxShadow: 'var(--shadow-card)',
 }
 const labelStyle = {
   fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase',

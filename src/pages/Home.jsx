@@ -23,13 +23,16 @@ export default function Home({ crianca, irPara }) {
       </div>
 
       {proximo && (
-        <div style={{ ...cardStyle, background: 'var(--blue)', marginTop: 16, cursor: 'pointer' }}
-             onClick={() => irPara('calendario')}>
-          <p style={{ fontSize: 11, fontWeight: 700 }}>PRÓXIMO DIA DE VACINA</p>
-          <b style={{ fontSize: 18 }}>
+        <div
+          className="tap-scale"
+          style={{ ...cardStyle, background: 'var(--blue)', marginTop: 16, cursor: 'pointer' }}
+          onClick={() => irPara('calendario')}
+        >
+          <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.03em', margin: 0 }}>PRÓXIMO DIA DE VACINA</p>
+          <b style={{ fontFamily: 'var(--font-display)', fontSize: 19, display: 'block', marginTop: 4 }}>
             {proximo.data.toLocaleDateString('pt-BR')} · {proximo.totalPicadas} picada{proximo.totalPicadas > 1 ? 's' : ''}
           </b>
-          <p style={{ fontSize: 12, marginTop: 6 }}>
+          <p style={{ fontSize: 12, marginTop: 6, margin: '6px 0 0' }}>
             {proximo.doses.map((d) => d.vacinaNome).join(' · ')}
           </p>
         </div>
@@ -40,4 +43,5 @@ export default function Home({ crianca, irPara }) {
 
 const cardStyle = {
   background: 'var(--card)', borderRadius: 'var(--radius)', padding: 20,
+  boxShadow: 'var(--shadow-card)',
 }

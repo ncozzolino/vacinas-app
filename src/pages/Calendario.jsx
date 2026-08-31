@@ -71,17 +71,17 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
     <div style={{ padding: '34px 20px' }}>
       <h1 className="display" style={{ fontSize: 20 }}>Vacinação</h1>
 
-      <div style={{ display: 'flex', gap: 6, background: '#fff', padding: 4, borderRadius: 100, marginTop: 14 }}>
-        <button onClick={() => setAba('sugerido')} style={tabBtn(aba === 'sugerido')}>Calendário sugerido</button>
-        <button onClick={() => setAba('meu')} style={tabBtn(aba === 'meu')}>Meu calendário</button>
+      <div style={{ display: 'flex', gap: 4, background: '#fff', padding: 4, borderRadius: 100, marginTop: 14, boxShadow: 'var(--shadow-card)' }}>
+        <button className="tap-scale" onClick={() => setAba('sugerido')} style={tabBtn(aba === 'sugerido')}>Calendário sugerido</button>
+        <button className="tap-scale" onClick={() => setAba('meu')} style={tabBtn(aba === 'meu')}>Meu calendário</button>
       </div>
 
       {aba === 'sugerido' && (
         <div style={{ marginTop: 20 }}>
           {vacinasData.vacinas.map((v) => (
             <div key={v.id} style={cardStyle}>
-              <b>{v.nome_sus}</b>
-              <p style={{ fontSize: 12, color: 'var(--ink-soft)' }}>{v.doencas_evitadas.join(', ')}</p>
+              <b style={{ fontFamily: 'var(--font-display)', fontSize: 14.5 }}>{v.nome_sus}</b>
+              <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '4px 0 0' }}>{v.doencas_evitadas.join(', ')}</p>
             </div>
           ))}
         </div>
@@ -89,12 +89,12 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
 
       {aba === 'meu' && (
         <div style={{ marginTop: 20 }}>
-          <button onClick={sincronizarAgenda} disabled={sincronizando} style={btnSync}>
-            {sincronizando ? 'Sincronizando…' : '📅 Sincronizar com Google Agenda'}
+          <button className="tap-scale" onClick={sincronizarAgenda} disabled={sincronizando} style={btnSync}>
+            {sincronizando ? 'Sincronizando…' : '📅  Sincronizar com Google Agenda'}
           </button>
           {sincMsg && (
             <p style={{
-              fontSize: 12, marginTop: 8, marginBottom: 4,
+              fontSize: 12, marginTop: 8, marginBottom: 4, textAlign: 'center',
               color: sincMsg.tipo === 'ok' ? 'var(--green-deep)' : '#B2472C',
             }}>
               {sincMsg.texto}
@@ -112,22 +112,30 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
 
           {dias.map((dia) => (
             <div key={dia.data.toISOString()} style={cardStyle}>
-              <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                <b>{dia.data.toLocaleDateString('pt-BR')}</b>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
+                <b style={{ fontFamily: 'var(--font-display)', fontSize: 15 }}>{dia.data.toLocaleDateString('pt-BR')}</b>
                 <span style={badgeStyle}>{dia.totalPicadas} picada{dia.totalPicadas > 1 ? 's' : ''}</span>
               </div>
-              {dia.doses.map((d) => (
-                <div
-                  key={`${d.vacinaId}_${d.dose}`}
-                  onClick={() => d.status !== 'aplicada' && marcarAplicada(d.vacinaId, d.dose)}
-                  style={{ display: 'flex', justifyContent: 'space-between', padding: '8px 0', cursor: 'pointer' }}
-                >
-                  <span>{d.vacinaNome} — {d.dose}ª dose</span>
-                  <span style={{ color: d.status === 'aplicada' ? 'var(--green-deep)' : 'var(--ink-soft)' }}>
-                    {d.status === 'aplicada' ? '✓ aplicada' : 'toque para marcar'}
-                  </span>
-                </div>
-              ))}
+              {dia.doses.map((d) => {
+                const aplicada = d.status === 'aplicada'
+                return (
+                  <div
+                    key={`${d.vacinaId}_${d.dose}`}
+                    onClick={() => !aplicada && marcarAplicada(d.vacinaId, d.dose)}
+                    className={aplicada ? undefined : 'tap-scale'}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', cursor: aplicada ? 'default' : 'pointer' }}
+                  >
+                    <span style={checkboxStyle(aplicada)}>{aplicada && '✓'}</span>
+                    <span style={{
+                      fontSize: 13.5,
+                      color: aplicada ? 'var(--ink-soft)' : 'var(--ink)',
+                      textDecoration: aplicada ? 'line-through' : 'none',
+                    }}>
+                      {d.vacinaNome} — {d.dose}ª dose
+                    </span>
+                  </div>
+                )
+              })}
             </div>
           ))}
         </div>
@@ -136,15 +144,27 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   )
 }
 
-const cardStyle = { background: 'var(--card)', borderRadius: 18, padding: 16, marginBottom: 12 }
+const cardStyle = { background: 'var(--card)', borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: 'var(--shadow-card)' }
 const badgeStyle = { fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 100, background: 'var(--amber-tint)', color: 'var(--amber-deep)' }
 const btnSync = {
   width: '100%', border: 'none', borderRadius: 14, padding: 13, marginTop: 16,
   background: 'var(--blue)', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+  boxShadow: 'var(--shadow-card)',
 }
 function tabBtn(ativo) {
   return {
     flex: 1, border: 'none', padding: 9, borderRadius: 100, fontWeight: 700, fontSize: 12,
     background: ativo ? 'var(--blue)' : 'transparent', cursor: 'pointer',
+    transition: 'background-color 0.15s ease',
+  }
+}
+function checkboxStyle(aplicada) {
+  return {
+    width: 22, height: 22, borderRadius: '50%', flexShrink: 0,
+    display: 'flex', alignItems: 'center', justifyContent: 'center',
+    fontSize: 12, fontWeight: 800, color: '#fff', lineHeight: 1,
+    background: aplicada ? 'var(--green-deep)' : 'transparent',
+    border: aplicada ? 'none' : '2px solid var(--line)',
+    transition: 'background-color 0.15s ease, border-color 0.15s ease',
   }
 }

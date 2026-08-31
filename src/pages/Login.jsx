@@ -64,12 +64,12 @@ export default function Login({ onGoogleToken }) {
           style={inputStyle}
         />
         {erro && <p style={{ color: '#B2472C', fontSize: 13 }}>{erro}</p>}
-        <button type="submit" disabled={carregando} style={btnPrimary}>
+        <button className="tap-scale" type="submit" disabled={carregando} style={btnPrimary}>
           {carregando ? 'Entrando…' : 'Entrar'}
         </button>
       </form>
 
-      <button onClick={entrarComGoogle} style={btnGoogle}>Entrar com Google</button>
+      <button className="tap-scale" onClick={entrarComGoogle} style={btnGoogle}>Entrar com Google</button>
     </div>
   )
 }
@@ -81,6 +81,7 @@ const inputStyle = {
 const btnPrimary = {
   width: '100%', padding: 14, borderRadius: 14, border: 'none',
   background: 'var(--ink)', color: '#fff', fontWeight: 700, cursor: 'pointer',
+  boxShadow: 'var(--shadow-card)',
 }
 const btnGoogle = {
   width: '100%', padding: 13, borderRadius: 14, border: '1px solid var(--line)',
