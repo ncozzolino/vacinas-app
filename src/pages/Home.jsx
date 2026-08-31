@@ -1,4 +1,5 @@
 import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita, dosesAtrasadas } from '../utils/calcularCalendario'
+import { formatarRotuloDose } from '../components/VaccineDetailSheet.jsx'
 import mascoteEspera from '../assets/mascote-espera.webp'
 import mascoteComemorando from '../assets/mascote-comemorando.webp'
 
@@ -23,7 +24,7 @@ function AnelProgresso({ total, feitas, size = 60 }) {
 }
 
 export default function Home({ crianca, irPara }) {
-  const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {})
+  const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {}, crianca.esquemaEscolhido || {})
   const dias = agruparPorDiaDeVisita(doses)
   const proximo = proximoDiaDeVisita(dias)
   const total = doses.length
@@ -42,7 +43,7 @@ export default function Home({ crianca, irPara }) {
             ⚠️ {atrasadas.length} DOSE{atrasadas.length > 1 ? 'S' : ''} ATRASADA{atrasadas.length > 1 ? 'S' : ''}
           </p>
           <p style={{ fontSize: 12.5, margin: '4px 0 0', color: 'var(--red-deep)' }}>
-            {atrasadas.slice(0, 3).map((d) => `${d.vacinaNome} (${d.dose}ª dose)`).join(' · ')}
+            {atrasadas.slice(0, 3).map((d) => `${d.vacinaNome} (${formatarRotuloDose(d.dose)})`).join(' · ')}
             {atrasadas.length > 3 && ` e mais ${atrasadas.length - 3}`}
           </p>
         </div>

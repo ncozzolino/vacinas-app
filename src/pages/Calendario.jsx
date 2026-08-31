@@ -9,6 +9,7 @@ import {
   paraDataLocal,
 } from '../utils/calcularCalendario'
 import DecisionCard from '../components/DecisionCard.jsx'
+import CalendarioSugerido from '../components/CalendarioSugerido.jsx'
 import VaccineDetailSheet, { formatarRotuloDose } from '../components/VaccineDetailSheet.jsx'
 import vacinasData from '../data/pni-calendario-vacinal.json'
 import copyVacinas from '../data/copy-vacinas-app.json'
@@ -26,12 +27,17 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
     setDetalhe({ vacina: vacinaBase, dose: dose || null })
   }
 
-  const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {})
+  const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {}, crianca.esquemaEscolhido || {})
   const dias = agruparPorDiaDeVisita(doses)
 
   // Vacinas com diferença real de esquema entre SUS e particular —
   // mostradas como decisão explícita, uma vez cada, no topo do "Meu calendário".
-  const vacinasComDecisao = vacinasData.vacinas.filter((v) => v.esquema_particular?.nota_preliminar)
+  // Só entra na lista se houver diferença REAL (datas ou efeitos colaterais) —
+  // ex: BCG tem nota_preliminar mas não existe no particular, não é uma
+  // decisão de verdade.
+  const vacinasComDecisao = vacinasData.vacinas.filter(
+    (v) => v.impacto_particular?.altera_datas_ou_doses || v.impacto_particular?.altera_efeitos_colaterais
+  )
 
   function abrirConfirmacao(vacinaId, dose, vacinaNome) {
     setDataConfirmacao(formatarDataISO(new Date()))
@@ -116,19 +122,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
       </div>
 
       {aba === 'sugerido' && (
-        <div style={{ marginTop: 20 }}>
-          {vacinasData.vacinas.map((v) => (
-            <div
-              key={v.id}
-              className="tap-scale"
-              style={{ ...cardStyle, cursor: 'pointer' }}
-              onClick={() => abrirDetalhe(v, null)}
-            >
-              <b style={{ fontFamily: 'var(--font-display)', fontSize: 14.5 }}>{v.nome_sus}</b>
-              <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '4px 0 0' }}>{v.doencas_evitadas.join(', ')}</p>
-            </div>
-          ))}
-        </div>
+        <CalendarioSugerido vacinas={vacinasData.vacinas} onSelecionar={(v) => abrirDetalhe(v, null)} />
       )}
 
       {aba === 'meu' && (

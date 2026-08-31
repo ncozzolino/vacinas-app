@@ -61,15 +61,23 @@ function paraMeiaNoite(date) {
  * calendário, não uma regra clínica de intervalo mínimo entre doses (essa
  * informação não está na nossa base — ver observação no README); doses de
  * vacinas DIFERENTES nunca se afetam entre si.
+ *
+ * `esquemaEscolhido` — mapa `{ <vacinaId>: 'sus' | 'particular' }` — decide
+ * qual grade de datas usar por vacina. Só tem efeito nas vacinas que têm
+ * `impacto_particular.doses_particular` na base (esquema realmente diferente,
+ * com fonte); escolher "Particular" numa vacina sem isso continua usando as
+ * datas do SUS, porque é a única grade que temos confirmada.
  */
-export function gerarDosesDaCrianca(dataNascimentoISO, datasAplicacao = {}) {
+export function gerarDosesDaCrianca(dataNascimentoISO, datasAplicacao = {}, esquemaEscolhido = {}) {
   const doses = []
   const hoje = paraMeiaNoite(new Date())
 
   for (const vacina of vacinasData.vacinas) {
+    const usaParticular = esquemaEscolhido[vacina.id] === 'particular' && vacina.impacto_particular?.doses_particular
+    const esquema = usaParticular ? vacina.impacto_particular.doses_particular : vacina.esquema_sus
     let deslocamentoDias = 0 // atraso/adiantamento da última dose confirmada desta vacina
 
-    for (const item of vacina.esquema_sus) {
+    for (const item of esquema) {
       const chave = `${vacina.id}_${item.dose}`
       const dataOriginal = somarMeses(dataNascimentoISO, item.idade_alvo_meses)
       const dataConfirmadaISO = datasAplicacao[chave] || null
@@ -95,6 +103,7 @@ export function gerarDosesDaCrianca(dataNascimentoISO, datasAplicacao = {}) {
         obs: item.obs || null,
         viaAdministracao: vacina.via_administracao || 'Injetável (picada)',
         status: dataConfirmada ? 'aplicada' : (dataPrevista < hoje ? 'atrasada' : 'pendente'),
+        esquemaUsado: usaParticular ? 'particular' : 'sus',
       })
     }
   }

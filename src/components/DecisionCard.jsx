@@ -4,15 +4,20 @@
 // renderiza aberto.
 
 export default function DecisionCard({ vacina, escolhaAtual, onEscolher }) {
-  if (!vacina.esquema_particular?.nota_preliminar) return null
+  const impacto = vacina.impacto_particular
+  const descricao = impacto?.resumo || vacina.esquema_particular?.nota_preliminar
+  if (!descricao) return null
 
   const escolha = escolhaAtual || 'sus'
 
   return (
     <div style={cardStyle}>
-      <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>{vacina.nome_sus}</b>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>{vacina.nome_sus}</b>
+        {impacto?.altera_datas_ou_doses && <span style={seloStyle}>📅 muda as datas</span>}
+      </div>
       <p style={{ fontSize: 11.5, lineHeight: 1.5, margin: '6px 0 12px' }}>
-        {vacina.esquema_particular.nota_preliminar}
+        {descricao}
       </p>
       <div style={{ display: 'flex', gap: 8 }}>
         <button
@@ -37,6 +42,10 @@ export default function DecisionCard({ vacina, escolhaAtual, onEscolher }) {
 const cardStyle = {
   background: '#fff', border: '1px solid var(--line)',
   borderRadius: 14, padding: 13, marginBottom: 8,
+}
+const seloStyle = {
+  fontSize: 9.5, fontWeight: 800, padding: '2px 8px', borderRadius: 100,
+  background: 'var(--blue-tint)', color: 'var(--blue-deep)', whiteSpace: 'nowrap',
 }
 function optStyle(ativo) {
   return {
