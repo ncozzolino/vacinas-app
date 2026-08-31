@@ -6,6 +6,7 @@ import {
   GoogleAuthProvider,
 } from 'firebase/auth'
 import { auth, googleProvider } from '../firebase'
+import Logo from '../components/Logo.jsx'
 
 export default function Login({ onGoogleToken }) {
   const [email, setEmail] = useState('')
@@ -43,6 +44,9 @@ export default function Login({ onGoogleToken }) {
 
   return (
     <div style={{ maxWidth: 380, margin: '0 auto', padding: '60px 24px', textAlign: 'center' }}>
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
+        <Logo />
+      </div>
       <h1 className="display" style={{ fontSize: 24 }}>Primeira Infância</h1>
       <p style={{ color: 'var(--ink-soft)', marginBottom: 32 }}>Calendário vacinal, sem esforço</p>
 

@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { doc, setDoc } from 'firebase/firestore'
 import { auth, db } from '../firebase'
+import mascoteCapivara from '../assets/mascote-capivara.webp'
 
 export default function CadastroCrianca({ onSalvo }) {
   const [nome, setNome] = useState('')
@@ -28,9 +29,12 @@ export default function CadastroCrianca({ onSalvo }) {
   }
 
   return (
-    <div style={{ maxWidth: 380, margin: '0 auto', padding: '60px 24px' }}>
-      <h1 className="display" style={{ fontSize: 22 }}>Vamos começar</h1>
-      <p style={{ color: 'var(--ink-soft)', marginBottom: 28 }}>
+    <div style={{ maxWidth: 380, margin: '0 auto', padding: '40px 24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
+        <img src={mascoteCapivara} alt="" style={{ width: 160, height: 'auto' }} />
+      </div>
+      <h1 className="display" style={{ fontSize: 22, textAlign: 'center' }}>Vamos começar</h1>
+      <p style={{ color: 'var(--ink-soft)', marginBottom: 28, textAlign: 'center' }}>
         Com o nome e a data de nascimento, geramos automaticamente todo o calendário vacinal.
       </p>
       <form onSubmit={salvar}>

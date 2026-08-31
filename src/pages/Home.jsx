@@ -1,4 +1,6 @@
 import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita } from '../utils/calcularCalendario'
+import mascoteTermometro from '../assets/mascote-termometro.webp'
+import mascoteCoracao from '../assets/mascote-coracao.webp'
 
 function AnelProgresso({ total, feitas, size = 60 }) {
   const pct = total > 0 ? feitas / total : 0
@@ -29,20 +31,26 @@ export default function Home({ crianca, irPara }) {
   const proximo = proximoDiaDeVisita(dias)
   const total = doses.length
   const feitas = doses.filter((d) => d.status === 'aplicada').length
+  const emDia = total - feitas === 0
 
   return (
     <div style={{ padding: '34px 20px', maxWidth: 480, margin: '0 auto' }}>
       <p style={{ color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600 }}>Boa tarde</p>
       <h1 className="display" style={{ fontSize: 20 }}>{crianca.nome}</h1>
 
-      <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 16 }}>
+      <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 12 }}>
         <AnelProgresso total={total} feitas={feitas} />
-        <div>
+        <div style={{ flex: 1 }}>
           <b style={{ fontFamily: 'var(--font-display)', fontSize: 17 }}>{feitas}/{total} doses</b>
           <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>
-            {total - feitas === 0 ? 'Calendário em dia!' : `${total - feitas} doses restantes`}
+            {emDia ? 'Calendário em dia!' : `${total - feitas} doses restantes`}
           </p>
         </div>
+        <img
+          src={emDia ? mascoteCoracao : mascoteTermometro}
+          alt=""
+          style={{ width: 52, height: 'auto', flexShrink: 0 }}
+        />
       </div>
 
       {proximo && (
