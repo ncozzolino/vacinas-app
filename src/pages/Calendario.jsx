@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { doc, updateDoc } from 'firebase/firestore'
 import { auth, db, obterAccessTokenGoogle } from '../firebase'
-import { gerarDosesDaCrianca, agruparPorDiaDeVisita, formatarDataISO } from '../utils/calcularCalendario'
+import { gerarDosesDaCrianca, agruparPorDiaDeVisita, formatarDataISO, paraDataLocal } from '../utils/calcularCalendario'
 import DecisionCard from '../components/DecisionCard.jsx'
 import vacinasData from '../data/pni-calendario-vacinal.json'
 
@@ -9,6 +9,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   const [aba, setAba] = useState('meu') // 'sugerido' | 'meu'
   const [sincronizando, setSincronizando] = useState(false)
   const [sincMsg, setSincMsg] = useState(null) // { tipo: 'ok' | 'erro', texto }
+  const [decisoesAbertas, setDecisoesAbertas] = useState(false)
 
   const doses = gerarDosesDaCrianca(crianca.dataNascimento).map((d) => {
     const chave = `${d.vacinaId}_${d.dose}`
@@ -72,6 +73,9 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   return (
     <div style={{ padding: '34px 20px', maxWidth: 520, margin: '0 auto' }}>
       <h1 className="display" style={{ fontSize: 20 }}>Vacinação</h1>
+      <p style={{ fontSize: 12.5, color: 'var(--ink-soft)', margin: '4px 0 0' }}>
+        Calculado a partir do nascimento de <b style={{ color: 'var(--ink)' }}>{crianca.nome}</b> — {paraDataLocal(crianca.dataNascimento).toLocaleDateString('pt-BR')}
+      </p>
 
       <div style={{ display: 'flex', gap: 4, background: '#fff', padding: 4, borderRadius: 100, marginTop: 14, boxShadow: 'var(--shadow-card)' }}>
         <button className="tap-scale" onClick={() => setAba('sugerido')} style={tabBtn(aba === 'sugerido')}>Calendário sugerido</button>
@@ -103,14 +107,36 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
             </p>
           )}
 
-          {vacinasComDecisao.map((v) => (
-            <DecisionCard
-              key={v.id}
-              vacina={v}
-              escolhaAtual={crianca.esquemaEscolhido?.[v.id]}
-              onEscolher={escolherEsquema}
-            />
-          ))}
+          {vacinasComDecisao.length > 0 && (
+            <div style={decisionSectionStyle}>
+              <button
+                className="tap-scale"
+                onClick={() => setDecisoesAbertas((a) => !a)}
+                style={decisionHeaderStyle}
+              >
+                <div style={{ textAlign: 'left' }}>
+                  <p style={decisionLabelStyle}>Decisões de esquema</p>
+                  <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>
+                    {vacinasComDecisao.length} vacinas com diferença SUS × Particular
+                  </b>
+                </div>
+                <span style={chevronStyle(decisoesAbertas)}>▾</span>
+              </button>
+
+              {decisoesAbertas && (
+                <div style={{ marginTop: 10 }}>
+                  {vacinasComDecisao.map((v) => (
+                    <DecisionCard
+                      key={v.id}
+                      vacina={v}
+                      escolhaAtual={crianca.esquemaEscolhido?.[v.id]}
+                      onEscolher={escolherEsquema}
+                    />
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {dias.map((dia) => (
             <div key={formatarDataISO(dia.data)} style={cardStyle}>
@@ -159,6 +185,24 @@ function tabBtn(ativo) {
     flex: 1, border: 'none', padding: 9, borderRadius: 100, fontWeight: 700, fontSize: 12,
     background: ativo ? 'var(--blue)' : 'transparent', cursor: 'pointer',
     transition: 'background-color 0.15s ease',
+  }
+}
+const decisionSectionStyle = {
+  background: 'var(--amber-tint)', border: '1px solid #E8C596',
+  borderRadius: 16, padding: 15, marginBottom: 12, boxShadow: 'var(--shadow-card)',
+}
+const decisionHeaderStyle = {
+  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+  width: '100%', border: 'none', background: 'none', padding: 0, cursor: 'pointer',
+}
+const decisionLabelStyle = {
+  fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase',
+  letterSpacing: '.05em', color: 'var(--amber-deep)', margin: 0,
+}
+function chevronStyle(aberto) {
+  return {
+    fontSize: 14, color: 'var(--amber-deep)', flexShrink: 0, marginLeft: 10,
+    transform: aberto ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease',
   }
 }
 function checkboxStyle(aplicada) {

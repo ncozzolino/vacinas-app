@@ -1,5 +1,25 @@
 import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita } from '../utils/calcularCalendario'
 
+function AnelProgresso({ total, feitas, size = 60 }) {
+  const pct = total > 0 ? feitas / total : 0
+  const raio = size / 2 - 5
+  const circunferencia = 2 * Math.PI * raio
+  const preenchido = circunferencia * pct
+
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`} style={{ flexShrink: 0 }}>
+      <circle cx={size / 2} cy={size / 2} r={raio} fill="none" stroke="var(--line)" strokeWidth="6" />
+      <circle
+        cx={size / 2} cy={size / 2} r={raio} fill="none"
+        stroke="var(--green-deep)" strokeWidth="6" strokeLinecap="round"
+        strokeDasharray={`${preenchido} ${circunferencia - preenchido}`}
+        transform={`rotate(-90 ${size / 2} ${size / 2})`}
+        style={{ transition: 'stroke-dasharray 0.3s ease' }}
+      />
+    </svg>
+  )
+}
+
 export default function Home({ crianca, irPara }) {
   const doses = gerarDosesDaCrianca(crianca.dataNascimento).map((d) => {
     const chave = `${d.vacinaId}_${d.dose}`
@@ -15,11 +35,14 @@ export default function Home({ crianca, irPara }) {
       <p style={{ color: 'var(--ink-soft)', fontSize: 12, fontWeight: 600 }}>Boa tarde</p>
       <h1 className="display" style={{ fontSize: 20 }}>{crianca.nome}</h1>
 
-      <div style={cardStyle}>
-        <b>{feitas}/{total} doses</b>
-        <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>
-          {total - feitas === 0 ? 'Calendário em dia!' : `${total - feitas} doses restantes`}
-        </p>
+      <div style={{ ...cardStyle, display: 'flex', alignItems: 'center', gap: 16 }}>
+        <AnelProgresso total={total} feitas={feitas} />
+        <div>
+          <b style={{ fontFamily: 'var(--font-display)', fontSize: 17 }}>{feitas}/{total} doses</b>
+          <p style={{ fontSize: 13, color: 'var(--ink-soft)', margin: '4px 0 0' }}>
+            {total - feitas === 0 ? 'Calendário em dia!' : `${total - feitas} doses restantes`}
+          </p>
+        </div>
       </div>
 
       {proximo && (
