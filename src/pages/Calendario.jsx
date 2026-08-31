@@ -9,7 +9,9 @@ import {
   paraDataLocal,
 } from '../utils/calcularCalendario'
 import DecisionCard from '../components/DecisionCard.jsx'
+import VaccineDetailSheet, { formatarRotuloDose } from '../components/VaccineDetailSheet.jsx'
 import vacinasData from '../data/pni-calendario-vacinal.json'
+import copyVacinas from '../data/copy-vacinas-app.json'
 
 export default function Calendario({ crianca, googleAccessToken, onGoogleToken }) {
   const [aba, setAba] = useState('meu') // 'sugerido' | 'meu'
@@ -18,6 +20,11 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   const [decisoesAbertas, setDecisoesAbertas] = useState(false)
   const [doseParaConfirmar, setDoseParaConfirmar] = useState(null) // { vacinaId, dose, vacinaNome }
   const [dataConfirmacao, setDataConfirmacao] = useState('')
+  const [detalhe, setDetalhe] = useState(null) // { vacina, dose }
+
+  function abrirDetalhe(vacinaBase, dose) {
+    setDetalhe({ vacina: vacinaBase, dose: dose || null })
+  }
 
   const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {})
   const dias = agruparPorDiaDeVisita(doses)
@@ -111,7 +118,12 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
       {aba === 'sugerido' && (
         <div style={{ marginTop: 20 }}>
           {vacinasData.vacinas.map((v) => (
-            <div key={v.id} style={cardStyle}>
+            <div
+              key={v.id}
+              className="tap-scale"
+              style={{ ...cardStyle, cursor: 'pointer' }}
+              onClick={() => abrirDetalhe(v, null)}
+            >
               <b style={{ fontFamily: 'var(--font-display)', fontSize: 14.5 }}>{v.nome_sus}</b>
               <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '4px 0 0' }}>{v.doencas_evitadas.join(', ')}</p>
             </div>
@@ -172,22 +184,32 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
               </div>
               {dia.doses.map((d) => {
                 const aplicada = d.status === 'aplicada'
+                const vacinaBase = vacinasData.vacinas.find((v) => v.id === d.vacinaId)
                 return (
                   <div
                     key={`${d.vacinaId}_${d.dose}`}
-                    onClick={() => (aplicada ? desmarcar(d.vacinaId, d.dose) : abrirConfirmacao(d.vacinaId, d.dose, d.vacinaNome))}
-                    className="tap-scale"
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0', cursor: 'pointer' }}
-                    title={aplicada ? 'Toque para desmarcar' : 'Toque para confirmar a data de aplicação'}
+                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0' }}
                   >
-                    <span style={checkboxStyle(aplicada)}>{aplicada && '✓'}</span>
-                    <span style={{ flex: 1 }}>
+                    <span
+                      onClick={() => (aplicada ? desmarcar(d.vacinaId, d.dose) : abrirConfirmacao(d.vacinaId, d.dose, d.vacinaNome))}
+                      className="tap-scale"
+                      style={{ ...checkboxStyle(aplicada), cursor: 'pointer' }}
+                      title={aplicada ? 'Toque para desmarcar' : 'Toque para confirmar a data de aplicação'}
+                    >
+                      {aplicada && '✓'}
+                    </span>
+                    <span
+                      onClick={() => abrirDetalhe(vacinaBase, d)}
+                      className="tap-scale"
+                      style={{ flex: 1, cursor: 'pointer' }}
+                      title="Toque para ver detalhes da vacina"
+                    >
                       <span style={{
                         display: 'block', fontSize: 13.5,
                         color: aplicada ? 'var(--ink-soft)' : d.status === 'atrasada' ? 'var(--red-deep)' : 'var(--ink)',
                         textDecoration: aplicada ? 'line-through' : 'none',
                       }}>
-                        {d.vacinaNome} — {d.dose}ª dose
+                        {d.vacinaNome} — {formatarRotuloDose(d.dose)}
                       </span>
                       {aplicada && d.dataAplicacao && (
                         <span style={{ display: 'block', fontSize: 11, color: 'var(--green-deep)', fontWeight: 600 }}>
@@ -213,7 +235,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
           <div style={modalStyle} onClick={(e) => e.stopPropagation()}>
             <p style={decisionLabelStyle}>Quando foi aplicada?</p>
             <b style={{ fontFamily: 'var(--font-display)', fontSize: 16 }}>
-              {doseParaConfirmar.vacinaNome} — {doseParaConfirmar.dose}ª dose
+              {doseParaConfirmar.vacinaNome} — {formatarRotuloDose(doseParaConfirmar.dose)}
             </b>
             <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '6px 0 0' }}>
               Se a data for diferente da prevista, as próximas doses dessa vacina se ajustam automaticamente.
@@ -235,6 +257,20 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
             </div>
           </div>
         </div>
+      )}
+
+      {detalhe && (
+        <VaccineDetailSheet
+          vacina={detalhe.vacina}
+          dose={detalhe.dose}
+          copy={copyVacinas.vacinas[detalhe.vacina.id]}
+          esquemaLabel={
+            detalhe.dose
+              ? (crianca.esquemaEscolhido?.[detalhe.vacina.id] === 'particular' ? 'Particular' : 'SUS')
+              : null
+          }
+          onFechar={() => setDetalhe(null)}
+        />
       )}
     </div>
   )

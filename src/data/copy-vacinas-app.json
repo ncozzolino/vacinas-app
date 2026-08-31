@@ -1,0 +1,223 @@
+{
+  "_uso": "Este arquivo é o texto PRONTO PARA TELA — linguagem curta e acolhedora, para a folha de detalhe de cada vacina no app. A base completa, com fontes citadas, está em pni-calendario-vacinal.json; este arquivo é a 'tradução' dela para a interface.",
+  "vacinas": {
+    "hepatite_b": {
+      "paraQueServe": "Protege o fígado do seu bebê contra o vírus da hepatite B, que pode causar cirrose e até câncer no futuro.",
+      "reacoesComuns": [
+        "Dor ou vermelhidão no local",
+        "Endurecimento leve na pele"
+      ],
+      "quandoProcurarMedico": [
+        "Manchas roxas ou sangramentos incomuns nas semanas seguintes",
+        "Qualquer sinal de reação alérgica forte"
+      ],
+      "contraindicacoes": [
+        "Adiar se a criança estiver com febre no dia"
+      ]
+    },
+    "bcg": {
+      "paraQueServe": "Protege contra as formas mais graves de tuberculose. É normal e esperado que deixe uma pequena cicatriz no braço — não é motivo de preocupação.",
+      "reacoesComuns": [
+        "Uma casquinha que vira pequena ferida e depois cicatriz — isso é o esperado, não precisa de curativo ou pomada"
+      ],
+      "quandoProcurarMedico": [
+        "Ferida maior que 1cm ou que não cicatriza",
+        "Gânglio ou caroço na axila"
+      ],
+      "contraindicacoes": [
+        "Bebês prematuros até atingirem 2kg",
+        "Bebês com imunidade baixa"
+      ]
+    },
+    "penta": {
+      "paraQueServe": "Uma picada, cinco proteções: difteria, tétano, coqueluche, Hib e hepatite B.",
+      "reacoesComuns": [
+        "Febre nas primeiras 48h — é esperado e não interrompe o esquema",
+        "Dor e vermelhidão no local",
+        "Irritabilidade ou sono maior que o normal"
+      ],
+      "quandoProcurarMedico": [
+        "Febre alta que não melhora com antitérmico",
+        "Choro muito forte por mais de 3 horas",
+        "Moleza súbita ou perda de força"
+      ],
+      "contraindicacoes": [
+        "Reação grave em dose anterior desta vacina"
+      ]
+    },
+    "vip": {
+      "paraQueServe": "Protege contra a poliomielite (paralisia infantil).",
+      "reacoesComuns": [
+        "Dor leve no local — é rara mesmo assim",
+        "Febre é incomum com essa vacina"
+      ],
+      "quandoProcurarMedico": [
+        "Sinais de reação alérgica forte, embora seja raro"
+      ],
+      "contraindicacoes": [
+        "Reação alérgica grave em dose anterior"
+      ]
+    },
+    "rotavirus": {
+      "paraQueServe": "É por gotinha, não picada. Protege contra a gastroenterite (diarreia e vômito) causada pelo rotavírus.",
+      "reacoesComuns": [
+        "Fezes mais soltas nos dias seguintes é comum"
+      ],
+      "quandoProcurarMedico": [
+        "Choro muito forte com as perninhas encolhidas",
+        "Vômitos repetidos ou sangue nas fezes",
+        "Barriga muito inchada — principalmente na semana após a 2ª dose"
+      ],
+      "contraindicacoes": [
+        "Bebês com má-formação intestinal não corrigida",
+        "Bebês com imunidade muito baixa"
+      ]
+    },
+    "pneumococica": {
+      "paraQueServe": "Protege contra pneumonia, meningite e otite causadas pelo pneumococo.",
+      "reacoesComuns": [
+        "Dor, inchaço ou vermelhidão no local",
+        "Sono ou irritabilidade um pouco maiores"
+      ],
+      "quandoProcurarMedico": [
+        "Choro que não passa",
+        "Moleza súbita",
+        "Convulsão"
+      ],
+      "contraindicacoes": [
+        "Reação alérgica grave em dose anterior"
+      ]
+    },
+    "meningococica_c": {
+      "paraQueServe": "Protege contra a meningite causada pelo meningococo C — uma infecção grave e de evolução rápida.",
+      "reacoesComuns": [
+        "Vermelhidão, inchaço e dor no local são as mais comuns"
+      ],
+      "quandoProcurarMedico": [
+        "Febre alta persistente ou qualquer sinal fora do comum"
+      ],
+      "contraindicacoes": [
+        "Reação alérgica grave em dose anterior"
+      ]
+    },
+    "meningococica_acwy": {
+      "paraQueServe": "Amplia a proteção contra meningite para 4 tipos de meningococo (A, C, W e Y).",
+      "reacoesComuns": [
+        "Dor, inchaço e vermelhidão no local",
+        "Dor de cabeça, cansaço ou febre leve"
+      ],
+      "quandoProcurarMedico": [
+        "Febre alta persistente ou qualquer sinal fora do comum"
+      ],
+      "contraindicacoes": [
+        "Reação alérgica grave em dose anterior"
+      ]
+    },
+    "febre_amarela": {
+      "paraQueServe": "Protege contra a febre amarela, transmitida por mosquito.",
+      "reacoesComuns": [
+        "Entre o 3º e 4º dia: febre, dor de cabeça e dor no corpo em uma pequena parte dos vacinados"
+      ],
+      "quandoProcurarMedico": [
+        "Sintomas neurológicos (confusão, muita sonolência)",
+        "Sinais de reação alérgica forte"
+      ],
+      "contraindicacoes": [
+        "Não aplicar junto com a tríplice viral em bebês com menos de 2 anos — precisa de 30 dias de intervalo entre elas"
+      ]
+    },
+    "triplice_viral": {
+      "paraQueServe": "Protege contra sarampo, caxumba e rubéola — 3 doenças em 1 picada só.",
+      "reacoesComuns": [
+        "Vermelhidão no local e febre leve",
+        "Manchinhas vermelhas pelo corpo e febre mais alta podem surgir de 5 a 12 dias depois — isso é esperado"
+      ],
+      "quandoProcurarMedico": [
+        "Manchas roxas ou sangramentos incomuns nas semanas seguintes",
+        "Reação alérgica logo após a aplicação"
+      ],
+      "contraindicacoes": [
+        "Gestantes e pessoas com imunidade baixa não devem tomar (vacina de vírus vivo)",
+        "Alergia grave ao ovo NÃO é impedimento — mas avise a equipe de vacinação"
+      ]
+    },
+    "dtp": {
+      "paraQueServe": "Reforço de proteção contra difteria, tétano e coqueluche.",
+      "reacoesComuns": [
+        "Dor, vermelhidão e inchaço no local",
+        "Febre baixa a moderada"
+      ],
+      "quandoProcurarMedico": [
+        "Inchaço muito além do local da picada"
+      ],
+      "contraindicacoes": [
+        "Crianças com menos de 7 anos que tiveram encefalite nos 7 dias após dose anterior desta vacina"
+      ]
+    },
+    "varicela": {
+      "paraQueServe": "Protege contra a catapora (varicela).",
+      "reacoesComuns": [
+        "Dor no local em cerca de 1 a cada 4 crianças vacinadas",
+        "Vermelhidão leve"
+      ],
+      "quandoProcurarMedico": [
+        "Reação alérgica forte, embora rara"
+      ],
+      "contraindicacoes": [
+        "Gestantes e pessoas com imunidade baixa não devem tomar (vacina de vírus vivo)"
+      ]
+    },
+    "hepatite_a": {
+      "paraQueServe": "Protege o fígado contra o vírus da hepatite A.",
+      "reacoesComuns": [
+        "Vermelhidão e dor no local",
+        "Dor de cabeça ou cansaço leve"
+      ],
+      "quandoProcurarMedico": [
+        "Sintomas que persistem por mais de 3 dias merecem avaliação"
+      ],
+      "contraindicacoes": [
+        "Adiar se a criança estiver com febre alta no dia"
+      ]
+    },
+    "hpv": {
+      "paraQueServe": "Protege contra o HPV, vírus ligado a verrugas genitais e a alguns tipos de câncer no futuro.",
+      "reacoesComuns": [
+        "Dor, vermelhidão e inchaço no local — é a reação mais comum"
+      ],
+      "quandoProcurarMedico": [
+        "Tontura ou desmaio logo após a aplicação (comum por ansiedade — por isso a vacina é aplicada sentado, com observação de 15 min depois)"
+      ],
+      "contraindicacoes": [
+        "Gestantes",
+        "Reação alérgica grave em dose anterior"
+      ]
+    },
+    "dengue": {
+      "paraQueServe": "Protege contra a dengue, causada por mosquito, nos 4 sorotipos do vírus.",
+      "reacoesComuns": [
+        "Dor de cabeça, dor no local e no corpo — geralmente leve, até 3 dias",
+        "Febre pode aparecer até 30 dias depois — isso é esperado"
+      ],
+      "quandoProcurarMedico": [
+        "Dor abdominal intensa, sangramentos ou vômitos persistentes merecem avaliação imediata"
+      ],
+      "contraindicacoes": [
+        "Pessoas com imunidade baixa (é vacina de vírus vivo)"
+      ]
+    },
+    "dt": {
+      "paraQueServe": "Reforço de proteção contra difteria e tétano.",
+      "reacoesComuns": [
+        "Dor e sensibilidade no local são bem comuns",
+        "Vermelhidão e inchaço leve"
+      ],
+      "quandoProcurarMedico": [
+        "Inchaço muito além do local da picada"
+      ],
+      "contraindicacoes": [
+        "Reação alérgica grave em dose anterior"
+      ]
+    }
+  }
+}

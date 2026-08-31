@@ -46,3 +46,8 @@ h1, h2, h3, .display {
   transform: scale(0.97);
   opacity: 0.88;
 }
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
