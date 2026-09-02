@@ -11,8 +11,8 @@ export default defineConfig({
       srcDir: 'src',
       filename: 'sw.js',
       manifest: {
-        name: 'Caderneta em Dia — Calendário Vacinal',
-        short_name: 'Caderneta em Dia',
+        name: 'Vacina em Dia — Calendário Vacinal',
+        short_name: 'Vacina em Dia',
         description: 'Calendário vacinal automático para bebês e crianças',
         theme_color: '#AFC9E8',
         background_color: '#FAF6F0',
