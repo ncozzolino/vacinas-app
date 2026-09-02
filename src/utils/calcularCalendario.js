@@ -1,7 +1,7 @@
 // Núcleo do produto: dado o nascimento da criança + a base de vacinas do PNI,
 // gera cada dose com sua data prevista, e agrupa por DIA DE VISITA
 // (várias vacinas podem cair no mesmo dia — isso é o que o "Meu calendário"
-// mostra: quantas picadas acontecem em cada visita).
+// mostra: quantas injeções acontecem em cada visita).
 
 import vacinasData from '../data/pni-calendario-vacinal.json'
 
@@ -25,13 +25,20 @@ export function formatarDataISO(date) {
   return `${ano}-${mes}-${dia}`
 }
 
+/**
+ * "1 injeção" / "N injeções" — plural correto, não é só um "+s".
+ */
+export function formatarRotuloInjecoes(n) {
+  return `${n} injeç${n === 1 ? 'ão' : 'ões'}`
+}
+
 function somarMeses(dataNascimento, meses) {
   const d = paraDataLocal(dataNascimento)
   d.setMonth(d.getMonth() + meses)
   return d
 }
 
-function somarDias(date, dias) {
+export function somarDias(date, dias) {
   const d = new Date(date)
   d.setDate(d.getDate() + dias)
   return d
@@ -101,7 +108,7 @@ export function gerarDosesDaCrianca(dataNascimentoISO, datasAplicacao = {}, esqu
         dataOriginal,
         dataAplicacao: dataConfirmadaISO,
         obs: item.obs || null,
-        viaAdministracao: vacina.via_administracao || 'Injetável (picada)',
+        viaAdministracao: vacina.via_administracao || 'Injetável (injeção)',
         status: dataConfirmada ? 'aplicada' : (dataPrevista < hoje ? 'atrasada' : 'pendente'),
         esquemaUsado: usaParticular ? 'particular' : 'sus',
       })
@@ -116,7 +123,7 @@ export function gerarDosesDaCrianca(dataNascimentoISO, datasAplicacao = {}, esqu
 /**
  * Agrupa a lista de doses por DIA DE VISITA (mesma data = mesma ida ao posto/clínica).
  * Retorna um array de "dias", cada um com a data, a idade da criança naquele dia,
- * o total de picadas (excluindo orais, como o rotavírus) e as doses envolvidas.
+ * o total de injeções (excluindo orais, como o rotavírus) e as doses envolvidas.
  */
 export function agruparPorDiaDeVisita(doses) {
   const porData = new Map()
@@ -133,7 +140,7 @@ export function agruparPorDiaDeVisita(doses) {
     .sort((a, b) => a.data - b.data)
     .map((dia) => ({
       ...dia,
-      totalPicadas: dia.doses.filter(
+      totalInjecoes: dia.doses.filter(
         (d) => !d.viaAdministracao?.toLowerCase().includes('oral')
       ).length,
     }))
@@ -168,7 +175,7 @@ export function agruparPorSemana(doses) {
     .sort((a, b) => a.inicioSemana - b.inicioSemana)
     .map((semana) => ({
       ...semana,
-      totalPicadas: semana.doses.filter(
+      totalInjecoes: semana.doses.filter(
         (d) => !d.viaAdministracao?.toLowerCase().includes('oral')
       ).length,
     }))

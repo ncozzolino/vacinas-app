@@ -1,4 +1,4 @@
-import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita, dosesAtrasadas } from '../utils/calcularCalendario'
+import { gerarDosesDaCrianca, agruparPorDiaDeVisita, proximoDiaDeVisita, dosesAtrasadas, formatarRotuloInjecoes } from '../utils/calcularCalendario'
 import { formatarRotuloDose } from '../components/VaccineDetailSheet.jsx'
 import mascoteEspera from '../assets/mascote-espera.webp'
 import mascoteComemorando from '../assets/mascote-comemorando.webp'
@@ -72,7 +72,7 @@ export default function Home({ crianca, irPara }) {
         >
           <p style={{ fontSize: 11, fontWeight: 800, letterSpacing: '.03em', margin: 0 }}>PRÓXIMO DIA DE VACINA</p>
           <b style={{ fontFamily: 'var(--font-display)', fontSize: 19, display: 'block', marginTop: 4 }}>
-            {proximo.data.toLocaleDateString('pt-BR')} · {proximo.totalPicadas} picada{proximo.totalPicadas > 1 ? 's' : ''}
+            {proximo.data.toLocaleDateString('pt-BR')} · {formatarRotuloInjecoes(proximo.totalInjecoes)}
           </b>
           <p style={{ fontSize: 12, marginTop: 6, margin: '6px 0 0' }}>
             {proximo.doses.map((d) => d.vacinaNome).join(' · ')}

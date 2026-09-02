@@ -2,9 +2,22 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Cada usuário só lê/escreve o documento da própria criança (doc id = uid).
+    // Cada usuário só lê/escreve o documento da própria conta (doc id = uid)
+    // e a subcoleção de filhos dela — a posse é estrutural (uid já é
+    // segmento do caminho), não depende de um campo tipo "donoUid" que
+    // precisaria ser filtrado manualmente em toda query.
     match /criancas/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+
+      match /filhos/{filhoId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
+
+      // Assinaturas de push (Web Push) — nível de conta, não de filho: um
+      // dispositivo recebe lembretes de todos os filhos daquela conta.
+      match /pushSubscriptions/{subId} {
+        allow read, write: if request.auth != null && request.auth.uid == uid;
+      }
     }
   }
 }

@@ -168,7 +168,7 @@
       ],
       "esquema_particular": {
         "status": "pendente_revisao_clinica",
-        "nota_preliminar": "Hexavalente (soma pólio na mesma picada) — nome comercial e nº de doses a confirmar"
+        "nota_preliminar": "Hexavalente (soma pólio na mesma injeção) — nome comercial e nº de doses a confirmar"
       },
       "reacoes_comuns": {
         "fonte": "SBP + Manual MS de Eventos Adversos",
@@ -185,7 +185,7 @@
       "impacto_particular": {
         "altera_datas_ou_doses": false,
         "altera_efeitos_colaterais": true,
-        "resumo": "Mesmas datas (2-4-6 meses). Mas o SUS usa a versão de célula inteira (DTPw), com mais reação (febre, dor). A Hexavalente particular usa a versão acelular (DTPa), reconhecidamente com menos efeitos colaterais — e ainda reduz o número de picadas por visita, somando a VIP."
+        "resumo": "Mesmas datas (2-4-6 meses). Mas o SUS usa a versão de célula inteira (DTPw), com mais reação (febre, dor). A Hexavalente particular usa a versão acelular (DTPa), reconhecidamente com menos efeitos colaterais — e ainda reduz o número de injeções por visita, somando a VIP."
       }
     },
     {
@@ -245,7 +245,7 @@
       "impacto_particular": {
         "altera_datas_ou_doses": false,
         "altera_efeitos_colaterais": false,
-        "resumo": "Mesmas datas. No particular, some como picada separada (vai dentro da Hexavalente)."
+        "resumo": "Mesmas datas. No particular, some como injeção separada (vai dentro da Hexavalente)."
       }
     },
     {
@@ -268,7 +268,7 @@
           "obs": "2ª dose até 7m29d; intervalo mínimo 30 dias"
         }
       ],
-      "via_administracao": "Oral (não é picada)",
+      "via_administracao": "Oral (não é injeção)",
       "esquema_particular": {
         "status": "pendente_revisao_clinica"
       },
@@ -687,7 +687,7 @@
       },
       "quando_procurar_medico": {
         "fonte": "Sociedade Brasileira de Imunizações (SBIm) — familia.sbim.org.br",
-        "texto": "Reações psicogênicas (tontura, desmaio por ansiedade da picada) foram descritas — por isso é recomendado aplicar com a pessoa sentada ou deitada e observar por 15 minutos depois. Fora isso, ver regra geral."
+        "texto": "Reações psicogênicas (tontura, desmaio por ansiedade da injeção) foram descritas — por isso é recomendado aplicar com a pessoa sentada ou deitada e observar por 15 minutos depois. Fora isso, ver regra geral."
       },
       "contraindicacoes": {
         "fonte": "Sociedade Brasileira de Imunizações (SBIm) — familia.sbim.org.br",
@@ -771,7 +771,7 @@
       },
       "quando_procurar_medico": {
         "fonte": "Sociedade Brasileira de Imunizações (SBIm) — familia.sbim.org.br",
-        "texto": "Reação local intensa comprometendo todo o membro (tipo Arthus) é rara — procurar avaliação se o inchaço for muito além do local da picada."
+        "texto": "Reação local intensa comprometendo todo o membro (tipo Arthus) é rara — procurar avaliação se o inchaço for muito além do local da injeção."
       },
       "contraindicacoes": {
         "fonte": "Sociedade Brasileira de Imunizações (SBIm) — familia.sbim.org.br",

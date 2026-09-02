@@ -30,7 +30,7 @@
       ]
     },
     "penta": {
-      "paraQueServe": "Uma picada, cinco proteções: difteria, tétano, coqueluche, Hib e hepatite B.",
+      "paraQueServe": "Uma injeção, cinco proteções: difteria, tétano, coqueluche, Hib e hepatite B.",
       "reacoesComuns": [
         "Febre nas primeiras 48h — é esperado e não interrompe o esquema",
         "Dor e vermelhidão no local",
@@ -59,7 +59,7 @@
       ]
     },
     "rotavirus": {
-      "paraQueServe": "É por gotinha, não picada. Protege contra a gastroenterite (diarreia e vômito) causada pelo rotavírus.",
+      "paraQueServe": "É por gotinha, não injeção. Protege contra a gastroenterite (diarreia e vômito) causada pelo rotavírus.",
       "reacoesComuns": [
         "Fezes mais soltas nos dias seguintes é comum"
       ],
@@ -127,7 +127,7 @@
       ]
     },
     "triplice_viral": {
-      "paraQueServe": "Protege contra sarampo, caxumba e rubéola — 3 doenças em 1 picada só.",
+      "paraQueServe": "Protege contra sarampo, caxumba e rubéola — 3 doenças em 1 injeção só.",
       "reacoesComuns": [
         "Vermelhidão no local e febre leve",
         "Manchinhas vermelhas pelo corpo e febre mais alta podem surgir de 5 a 12 dias depois — isso é esperado"
@@ -148,7 +148,7 @@
         "Febre baixa a moderada"
       ],
       "quandoProcurarMedico": [
-        "Inchaço muito além do local da picada"
+        "Inchaço muito além do local da injeção"
       ],
       "contraindicacoes": [
         "Crianças com menos de 7 anos que tiveram encefalite nos 7 dias após dose anterior desta vacina"
@@ -213,7 +213,7 @@
         "Vermelhidão e inchaço leve"
       ],
       "quandoProcurarMedico": [
-        "Inchaço muito além do local da picada"
+        "Inchaço muito além do local da injeção"
       ],
       "contraindicacoes": [
         "Reação alérgica grave em dose anterior"

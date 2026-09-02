@@ -7,18 +7,20 @@ import {
   agruparPorSemana,
   formatarDataISO,
   paraDataLocal,
+  formatarRotuloInjecoes,
 } from '../utils/calcularCalendario'
-import DecisionCard from '../components/DecisionCard.jsx'
 import CalendarioSugerido from '../components/CalendarioSugerido.jsx'
+import EscolhaEsquemaWizard from '../components/EscolhaEsquemaWizard.jsx'
 import VaccineDetailSheet, { formatarRotuloDose } from '../components/VaccineDetailSheet.jsx'
 import vacinasData from '../data/pni-calendario-vacinal.json'
 import copyVacinas from '../data/copy-vacinas-app.json'
+import { CORES_GOOGLE } from '../utils/coresGoogleCalendar.js'
 
-export default function Calendario({ crianca, googleAccessToken, onGoogleToken }) {
+export default function Calendario({ crianca, filhoId, emailResponsavel2, googleAccessToken, onGoogleToken }) {
   const [aba, setAba] = useState('meu') // 'sugerido' | 'meu'
   const [sincronizando, setSincronizando] = useState(false)
   const [sincMsg, setSincMsg] = useState(null) // { tipo: 'ok' | 'erro', texto }
-  const [decisoesAbertas, setDecisoesAbertas] = useState(false)
+  const [wizardAberto, setWizardAberto] = useState(false)
   const [doseParaConfirmar, setDoseParaConfirmar] = useState(null) // { vacinaId, dose, vacinaNome }
   const [dataConfirmacao, setDataConfirmacao] = useState('')
   const [detalhe, setDetalhe] = useState(null) // { vacina, dose }
@@ -49,7 +51,7 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
   async function confirmarAplicacao() {
     const { vacinaId, dose } = doseParaConfirmar
     const chave = `${vacinaId}_${dose}`
-    await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
+    await updateDoc(doc(db, 'criancas', auth.currentUser.uid, 'filhos', filhoId), {
       [`datasAplicacao.${chave}`]: dataConfirmacao,
     })
     setDoseParaConfirmar(null)
@@ -57,21 +59,38 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
 
   async function desmarcar(vacinaId, dose) {
     const chave = `${vacinaId}_${dose}`
-    await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
+    await updateDoc(doc(db, 'criancas', auth.currentUser.uid, 'filhos', filhoId), {
       [`datasAplicacao.${chave}`]: deleteField(),
     })
   }
 
-  async function escolherEsquema(vacinaId, escolha) {
-    await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
-      [`esquemaEscolhido.${vacinaId}`]: escolha,
+  // Chamado pelo assistente de SUS×Particular ao confirmar: grava todas as
+  // escolhas de uma vez (não por clique) e sempre sincroniza a Google Agenda
+  // em seguida — sem esperar o onSnapshot propagar. Sincronização é
+  // obrigatória aqui pra evitar mismatch entre o app e a Agenda; se falhar,
+  // a decisão já salva não é desfeita, o erro só aparece no banner.
+  async function salvarEscolhas(escolhas) {
+    await updateDoc(doc(db, 'criancas', auth.currentUser.uid, 'filhos', filhoId), {
+      esquemaEscolhido: escolhas,
     })
+    await sincronizarAgenda(escolhas)
   }
 
   // Sincroniza por SEMANA (não por dia exato) — dá uma margem real pros
   // pais: "essa semana" em vez de um dia específico que pode não bater com
-  // a agenda do posto. Só semanas com doses ainda pendentes.
-  async function sincronizarAgenda() {
+  // a agenda do posto. Inclui semanas com dose pendente OU atrasada (só
+  // fica de fora o que já foi aplicado).
+  //
+  // Idempotente: compara o calendário atual com `crianca.googleEventosSemana`
+  // (o que foi sincronizado da última vez) e só manda pra API o que
+  // realmente mudou — insere semana nova, atualiza semana cuja composição
+  // de doses mudou (ex: trocou SUS→Particular), exclui semana que não tem
+  // mais nada pendente. Rodar de novo sem mudar nada não duplica evento.
+  //
+  // `esquemaEscolhidoOverride`: usado pelo assistente de SUS×Particular pra
+  // sincronizar com as escolhas recém-salvas sem esperar o onSnapshot do
+  // Firestore propagar de volta pro prop `crianca`.
+  async function sincronizarAgenda(esquemaEscolhidoOverride) {
     setSincronizando(true)
     setSincMsg(null)
     try {
@@ -79,31 +98,97 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
       if (token !== googleAccessToken) onGoogleToken?.(token)
       if (!token) throw new Error('sem token')
 
-      const semanasPendentes = agruparPorSemana(doses)
-        .filter((semana) => semana.doses.some((d) => d.status === 'pendente'))
+      const dosesParaSync = esquemaEscolhidoOverride
+        ? gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {}, esquemaEscolhidoOverride)
+        : doses
+
+      const mapaAtual = crianca.googleEventosSemana || {}
+      const hoje = new Date()
+      hoje.setHours(0, 0, 0, 0)
+
+      const semanasRelevantes = agruparPorSemana(dosesParaSync)
+        .filter((semana) => semana.doses.some((d) => d.status !== 'aplicada'))
         .map((semana) => ({
+          chave: formatarDataISO(semana.inicioSemana),
+          inicioSemanaData: semana.inicioSemana,
           inicioSemana: formatarDataISO(semana.inicioSemana),
           fimSemana: formatarDataISO(semana.fimSemana),
           doses: semana.doses,
-          totalPicadas: semana.totalPicadas,
+          totalInjecoes: semana.totalInjecoes,
+          composicao: semana.doses.map((d) => `${d.vacinaId}_${d.dose}`).sort().join('|'),
         }))
+
+      const chaves = new Set([...Object.keys(mapaAtual), ...semanasRelevantes.map((s) => s.chave)])
+      const operacoes = []
+
+      for (const chave of chaves) {
+        const atual = mapaAtual[chave]
+        const alvo = semanasRelevantes.find((s) => s.chave === chave)
+
+        if (!atual && alvo) {
+          operacoes.push({ tipo: 'inserir', chave, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
+        } else if (atual && !alvo) {
+          operacoes.push({ tipo: 'excluir', chave, eventId: atual.eventId })
+        } else if (atual.composicao !== alvo.composicao) {
+          if (alvo.inicioSemanaData < hoje) {
+            // semana já passada: recria em vez de atualizar
+            operacoes.push({ tipo: 'excluir', chave, eventId: atual.eventId })
+            operacoes.push({ tipo: 'inserir', chave, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
+          } else {
+            operacoes.push({ tipo: 'atualizar', chave, eventId: atual.eventId, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
+          }
+        }
+        // composição igual → nada a fazer, sem chamada à API
+      }
+
+      if (operacoes.length === 0) {
+        setSincMsg({ tipo: 'ok', texto: 'Sua Agenda Google já está atualizada.' })
+        return
+      }
 
       const resp = await fetch('/.netlify/functions/criar-eventos-calendario', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accessToken: token,
-          semanas: semanasPendentes,
-          emailConvidado: crianca.emailResponsavel2 || undefined,
+          operacoes,
+          emailConvidado: emailResponsavel2 || undefined,
           nomeCrianca: crianca.nome,
+          corGoogleId: CORES_GOOGLE[crianca.cor],
         }),
       })
       const resultado = await resp.json()
-      if (!resp.ok) throw new Error(resultado.erro || 'falha')
+      if (!resp.ok) throw new Error(resultado.erro || 'Falha ao sincronizar.')
 
-      setSincMsg({ tipo: 'ok', texto: `${resultado.criados} evento(s) criado(s) na sua Agenda Google.` })
-    } catch {
-      setSincMsg({ tipo: 'erro', texto: 'Não foi possível sincronizar. Tente novamente.' })
+      const patch = {}
+      for (const r of resultado.resultados) {
+        if (!r.ok) continue
+        if (r.tipo === 'excluir') {
+          patch[`googleEventosSemana.${r.chave}`] = deleteField()
+        } else {
+          const origem = semanasRelevantes.find((s) => s.chave === r.chave)
+          patch[`googleEventosSemana.${r.chave}`] = {
+            eventId: r.eventId,
+            composicao: origem?.composicao || '',
+            totalInjecoes: origem?.totalInjecoes ?? 0,
+            atualizadoEm: new Date().toISOString(),
+          }
+        }
+      }
+      if (Object.keys(patch).length > 0) {
+        await updateDoc(doc(db, 'criancas', auth.currentUser.uid, 'filhos', filhoId), patch)
+      }
+
+      const inseridos = resultado.resultados.filter((r) => r.tipo === 'inserir' && r.ok).length
+      const atualizados = resultado.resultados.filter((r) => r.tipo === 'atualizar' && r.ok).length
+      const removidos = resultado.resultados.filter((r) => r.tipo === 'excluir' && r.ok).length
+      const partes = []
+      if (inseridos) partes.push(`${inseridos} novo(s)`)
+      if (atualizados) partes.push(`${atualizados} atualizado(s)`)
+      if (removidos) partes.push(`${removidos} removido(s)`)
+      setSincMsg({ tipo: 'ok', texto: `Agenda Google sincronizada: ${partes.join(', ') || 'sem mudanças'}.` })
+    } catch (erro) {
+      setSincMsg({ tipo: 'erro', texto: erro.message && erro.message !== 'sem token' ? erro.message : 'Não foi possível sincronizar. Tente novamente.' })
     } finally {
       setSincronizando(false)
     }
@@ -122,12 +207,16 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
       </div>
 
       {aba === 'sugerido' && (
-        <CalendarioSugerido vacinas={vacinasData.vacinas} onSelecionar={(v) => abrirDetalhe(v, null)} />
+        <CalendarioSugerido
+          vacinas={vacinasData.vacinas}
+          esquemaEscolhido={crianca.esquemaEscolhido}
+          onSelecionar={(v) => abrirDetalhe(v, null)}
+        />
       )}
 
       {aba === 'meu' && (
         <div style={{ marginTop: 20 }}>
-          <button className="tap-scale" onClick={sincronizarAgenda} disabled={sincronizando} style={btnSync}>
+          <button className="tap-scale" onClick={() => sincronizarAgenda()} disabled={sincronizando} style={btnSync}>
             {sincronizando ? 'Sincronizando…' : '📅  Sincronizar com Google Agenda'}
           </button>
           {sincMsg && (
@@ -140,41 +229,28 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
           )}
 
           {vacinasComDecisao.length > 0 && (
-            <div style={decisionSectionStyle}>
-              <button
-                className="tap-scale"
-                onClick={() => setDecisoesAbertas((a) => !a)}
-                style={decisionHeaderStyle}
-              >
-                <div style={{ textAlign: 'left' }}>
-                  <p style={decisionLabelStyle}>Decisões de esquema</p>
-                  <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>
-                    {vacinasComDecisao.length} vacinas com diferença SUS × Particular
-                  </b>
-                </div>
-                <span style={chevronStyle(decisoesAbertas)}>▾</span>
-              </button>
-
-              {decisoesAbertas && (
-                <div style={{ marginTop: 10 }}>
-                  {vacinasComDecisao.map((v) => (
-                    <DecisionCard
-                      key={v.id}
-                      vacina={v}
-                      escolhaAtual={crianca.esquemaEscolhido?.[v.id]}
-                      onEscolher={escolherEsquema}
-                    />
-                  ))}
-                </div>
-              )}
-            </div>
+            <button
+              className="tap-scale"
+              onClick={() => setWizardAberto(true)}
+              style={entradaDecisaoStyle}
+            >
+              <div style={{ textAlign: 'left' }}>
+                <p style={decisionLabelStyle}>Decisões de esquema</p>
+                <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>
+                  {vacinasComDecisao.length} vacinas com escolha SUS × Particular disponível
+                </b>
+              </div>
+              <span style={{ fontSize: 14, color: 'var(--amber-deep)', flexShrink: 0, marginLeft: 10 }}>
+                Revisar →
+              </span>
+            </button>
           )}
 
           {dias.map((dia) => (
             <div key={formatarDataISO(dia.data)} style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <b style={{ fontFamily: 'var(--font-display)', fontSize: 15 }}>{dia.data.toLocaleDateString('pt-BR')}</b>
-                <span style={badgeStyle}>{dia.totalPicadas} picada{dia.totalPicadas > 1 ? 's' : ''}</span>
+                <span style={badgeStyle}>{formatarRotuloInjecoes(dia.totalInjecoes)}</span>
               </div>
               {dia.doses.map((d) => {
                 const aplicada = d.status === 'aplicada'
@@ -253,6 +329,15 @@ export default function Calendario({ crianca, googleAccessToken, onGoogleToken }
         </div>
       )}
 
+      {wizardAberto && (
+        <EscolhaEsquemaWizard
+          crianca={crianca}
+          vacinas={vacinasComDecisao}
+          onSalvar={salvarEscolhas}
+          onFechar={() => setWizardAberto(false)}
+        />
+      )}
+
       {detalhe && (
         <VaccineDetailSheet
           vacina={detalhe.vacina}
@@ -284,23 +369,15 @@ function tabBtn(ativo) {
     transition: 'background-color 0.15s ease',
   }
 }
-const decisionSectionStyle = {
+const entradaDecisaoStyle = {
+  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+  width: '100%', textAlign: 'left', cursor: 'pointer',
   background: 'var(--amber-tint)', border: '1px solid #E8C596',
   borderRadius: 16, padding: 15, marginBottom: 12, boxShadow: 'var(--shadow-card)',
-}
-const decisionHeaderStyle = {
-  display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-  width: '100%', border: 'none', background: 'none', padding: 0, cursor: 'pointer',
 }
 const decisionLabelStyle = {
   fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase',
   letterSpacing: '.05em', color: 'var(--amber-deep)', margin: 0,
-}
-function chevronStyle(aberto) {
-  return {
-    fontSize: 14, color: 'var(--amber-deep)', flexShrink: 0, marginLeft: 10,
-    transform: aberto ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s ease',
-  }
 }
 function checkboxStyle(aplicada) {
   return {

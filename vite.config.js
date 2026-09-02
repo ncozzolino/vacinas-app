@@ -7,9 +7,12 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
+      strategies: 'injectManifest',
+      srcDir: 'src',
+      filename: 'sw.js',
       manifest: {
-        name: 'Primeira Infância — Calendário Vacinal',
-        short_name: 'Primeira Infância',
+        name: 'Caderneta Certa — Calendário Vacinal',
+        short_name: 'Caderneta Certa',
         description: 'Calendário vacinal automático para bebês e crianças',
         theme_color: '#AFC9E8',
         background_color: '#FAF6F0',

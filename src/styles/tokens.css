@@ -13,6 +13,12 @@
   --red: #E8A9A0;
   --red-deep: #B2472C;
   --red-tint: #FBEAE7;
+  --pink: #F0C4D3;
+  --pink-deep: #B4587A;
+  --pink-tint: #FBEFF3;
+  --yellow: #F3E2A0;
+  --yellow-deep: #A98A2E;
+  --yellow-tint: #FBF7E8;
   --ink: #33414D;
   --ink-soft: #8792A0;
   --line: #EDE7DC;
@@ -50,4 +56,14 @@ h1, h2, h3, .display {
 @keyframes slideUp {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
 }

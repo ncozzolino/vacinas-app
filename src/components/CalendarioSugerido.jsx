@@ -17,19 +17,19 @@ function agruparPorMarco(vacinas) {
   return grupos
 }
 
-function rotuloPicadas(vacina) {
+function rotuloInjecoes(vacina) {
   const viaOral = vacina.via_administracao?.toLowerCase().includes('oral')
   const total = vacina.esquema_sus.length
   if (viaOral) return total > 1 ? `${total}x, via oral` : 'Via oral'
   if (total === 1) return 'Dose única'
-  return `${total} picadas ao todo`
+  return `${total} injeções ao todo`
 }
 
 function resumoDatas(itens) {
   return itens.map((i) => i.idade_label).join(' · ')
 }
 
-export default function CalendarioSugerido({ vacinas, onSelecionar }) {
+export default function CalendarioSugerido({ vacinas, esquemaEscolhido, onSelecionar }) {
   const grupos = agruparPorMarco(vacinas)
 
   return (
@@ -54,6 +54,7 @@ export default function CalendarioSugerido({ vacinas, onSelecionar }) {
             {grupo.vacinas.map((v) => {
               const impacto = v.impacto_particular
               const temComparacao = !!impacto
+              const escolha = esquemaEscolhido?.[v.id] || (temComparacao ? 'sus' : null)
               return (
                 <div
                   key={v.id}
@@ -65,16 +66,16 @@ export default function CalendarioSugerido({ vacinas, onSelecionar }) {
                   <p style={{ fontSize: 12, color: 'var(--ink-soft)', margin: '4px 0 10px', lineHeight: 1.4 }}>
                     {v.doencas_evitadas.join(', ')}
                   </p>
-                  <span style={pillStyle}>{rotuloPicadas(v)}</span>
+                  <span style={pillStyle}>{rotuloInjecoes(v)}</span>
 
                   {temComparacao && (
                     <div style={{ display: 'flex', gap: 8, marginTop: 12 }}>
                       <div style={{ ...colunaStyle, background: 'var(--blue-tint)' }}>
-                        <p style={colunaLabelStyle}>SUS</p>
+                        <p style={colunaLabelStyle}>{escolha === 'sus' && '✓ '}SUS</p>
                         <p style={colunaTextoStyle}>{resumoDatas(v.esquema_sus)}</p>
                       </div>
                       <div style={{ ...colunaStyle, background: 'var(--amber-tint)' }}>
-                        <p style={{ ...colunaLabelStyle, color: 'var(--amber-deep)' }}>PARTICULAR</p>
+                        <p style={{ ...colunaLabelStyle, color: 'var(--amber-deep)' }}>{escolha === 'particular' && '✓ '}PARTICULAR</p>
                         <p style={colunaTextoStyle}>
                           {impacto.doses_particular
                             ? resumoDatas(impacto.doses_particular)

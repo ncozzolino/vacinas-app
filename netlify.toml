@@ -7,3 +7,8 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# Lembretes de vacina por push — 1x por dia, 09:00 em Brasília (12:00 UTC,
+# sem variação de horário de verão no Brasil desde 2019).
+[functions."enviar-lembretes-vacina"]
+  schedule = "0 12 * * *"

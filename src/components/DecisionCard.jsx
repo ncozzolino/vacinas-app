@@ -9,12 +9,18 @@ export default function DecisionCard({ vacina, escolhaAtual, onEscolher }) {
   if (!descricao) return null
 
   const escolha = escolhaAtual || 'sus'
+  // Calculado a partir dos arrays reais de doses — não do texto livre de
+  // `resumo`, que pode estar desatualizado (ex: hepatite B tem
+  // altera_datas_ou_doses:true mas doses_particular idêntico ao SUS).
+  const dosesParticular = impacto?.doses_particular
+  const mudaQtdInjecoes = dosesParticular && dosesParticular.length !== vacina.esquema_sus.length
 
   return (
     <div style={cardStyle}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
         <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>{vacina.nome_sus}</b>
         {impacto?.altera_datas_ou_doses && <span style={seloStyle}>📅 muda as datas</span>}
+        {mudaQtdInjecoes && <span style={seloDiffStyle}>🔢 muda o número de injeções</span>}
       </div>
       <p style={{ fontSize: 11.5, lineHeight: 1.5, margin: '6px 0 12px' }}>
         {descricao}
@@ -46,6 +52,10 @@ const cardStyle = {
 const seloStyle = {
   fontSize: 9.5, fontWeight: 800, padding: '2px 8px', borderRadius: 100,
   background: 'var(--blue-tint)', color: 'var(--blue-deep)', whiteSpace: 'nowrap',
+}
+const seloDiffStyle = {
+  fontSize: 9.5, fontWeight: 800, padding: '2px 8px', borderRadius: 100,
+  background: 'var(--green-tint)', color: 'var(--green-deep)', whiteSpace: 'nowrap',
 }
 function optStyle(ativo) {
   return {

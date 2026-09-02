@@ -47,7 +47,7 @@ export default function Login({ onGoogleToken }) {
       <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 18 }}>
         <Logo />
       </div>
-      <h1 className="display" style={{ fontSize: 24 }}>Primeira Infância</h1>
+      <h1 className="display" style={{ fontSize: 24 }}>Caderneta Certa</h1>
       <p style={{ color: 'var(--ink-soft)', marginBottom: 32 }}>Calendário vacinal, sem esforço</p>
 
       <form onSubmit={entrarComEmail} style={{ textAlign: 'left' }}>
