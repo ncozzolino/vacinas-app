@@ -5,6 +5,7 @@ import { auth, db } from '../firebase'
 import { paraDataLocal } from '../utils/calcularCalendario'
 import { ativarNotificacoes, statusNotificacoes } from '../utils/pushNotifications'
 import AvatarCrianca from '../components/AvatarCrianca.jsx'
+import InstalarApp from '../components/InstalarApp.jsx'
 import CadastroCrianca from './CadastroCrianca.jsx'
 
 // Troca de foto própria (upload) fica pra depois — exige o plano Blaze do
@@ -134,6 +135,8 @@ export default function Perfil({ perfil, filhos, filhoAtivoId, onEscolherFilho, 
           </div>
         )}
       </div>
+
+      <InstalarApp />
 
       <div style={{ ...cardStyle, marginTop: 12 }}>
         <label style={{ fontSize: 12, fontWeight: 600 }}>Notificações</label>

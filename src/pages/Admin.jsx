@@ -18,34 +18,40 @@ export default function Admin({ onVoltar }) {
   const [emailsTexto, setEmailsTexto] = useState('')
   const [salvando, setSalvando] = useState(false)
   const [salvo, setSalvo] = useState(false)
+  const [erro, setErro] = useState(null)
 
   useEffect(() => {
     carregar()
   }, [])
 
   async function carregar() {
-    const [contasSnap, criancasSnap] = await Promise.all([
-      getCountFromServer(collection(db, 'criancas')),
-      getCountFromServer(collectionGroup(db, 'filhos')),
-    ])
-    setTotais({ contas: contasSnap.data().count, criancas: criancasSnap.data().count })
+    setErro(null)
+    try {
+      const [contasSnap, criancasSnap] = await Promise.all([
+        getCountFromServer(collection(db, 'criancas')),
+        getCountFromServer(collectionGroup(db, 'filhos')),
+      ])
+      setTotais({ contas: contasSnap.data().count, criancas: criancasSnap.data().count })
 
-    const hoje = new Date()
-    const dias = Array.from({ length: DIAS_JANELA }, (_, i) => formatarDataISO(somarDias(hoje, i - (DIAS_JANELA - 1))))
-    const mapa = Object.fromEntries(dias.map((dia) => [dia, { dia, login: 0, sync_calendario: 0 }]))
+      const hoje = new Date()
+      const dias = Array.from({ length: DIAS_JANELA }, (_, i) => formatarDataISO(somarDias(hoje, i - (DIAS_JANELA - 1))))
+      const mapa = Object.fromEntries(dias.map((dia) => [dia, { dia, login: 0, sync_calendario: 0 }]))
 
-    const desde = dias[0]
-    const eventosSnap = await getDocs(query(collection(db, 'eventosApp'), where('dia', '>=', desde)))
-    for (const d of eventosSnap.docs) {
-      const { tipo, dia } = d.data()
-      if (mapa[dia] && (tipo === 'login' || tipo === 'sync_calendario')) mapa[dia][tipo]++
+      const desde = dias[0]
+      const eventosSnap = await getDocs(query(collection(db, 'eventosApp'), where('dia', '>=', desde)))
+      for (const d of eventosSnap.docs) {
+        const { tipo, dia } = d.data()
+        if (mapa[dia] && (tipo === 'login' || tipo === 'sync_calendario')) mapa[dia][tipo]++
+      }
+      setPorDia(dias.map((dia) => mapa[dia]))
+
+      const acessoSnap = await getDoc(doc(db, 'config', 'acesso'))
+      const dadosAcesso = acessoSnap.exists() ? acessoSnap.data() : { gateAtivo: false, emailsPermitidos: [] }
+      setAcesso(dadosAcesso)
+      setEmailsTexto((dadosAcesso.emailsPermitidos || []).join('\n'))
+    } catch (e) {
+      setErro(e.message || 'Erro desconhecido')
     }
-    setPorDia(dias.map((dia) => mapa[dia]))
-
-    const acessoSnap = await getDoc(doc(db, 'config', 'acesso'))
-    const dadosAcesso = acessoSnap.exists() ? acessoSnap.data() : { gateAtivo: false, emailsPermitidos: [] }
-    setAcesso(dadosAcesso)
-    setEmailsTexto((dadosAcesso.emailsPermitidos || []).join('\n'))
   }
 
   async function salvarAcesso(gateAtivo) {
@@ -68,7 +74,16 @@ export default function Admin({ onVoltar }) {
         <button className="tap-scale" onClick={onVoltar} style={btnVoltarStyle}>Voltar</button>
       </div>
 
-      {!totais && <p style={{ color: 'var(--ink-soft)', marginTop: 20 }}>Carregando…</p>}
+      {!totais && !erro && <p style={{ color: 'var(--ink-soft)', marginTop: 20 }}>Carregando…</p>}
+
+      {erro && (
+        <div style={{ ...cardStyle, marginTop: 20, background: 'var(--red-tint)' }}>
+          <p style={{ fontSize: 13, color: 'var(--red-deep)', margin: '0 0 10px' }}>
+            Não consegui carregar: {erro}
+          </p>
+          <button className="tap-scale" onClick={carregar} style={btnSecundarioStyle}>Tentar de novo</button>
+        </div>
+      )}
 
       {totais && (
         <>

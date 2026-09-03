@@ -8,6 +8,7 @@ import {
   formatarDataISO,
   paraDataLocal,
   formatarRotuloInjecoes,
+  somarDias,
 } from '../utils/calcularCalendario'
 import CalendarioSugerido from '../components/CalendarioSugerido.jsx'
 import EscolhaEsquemaWizard from '../components/EscolhaEsquemaWizard.jsx'
@@ -17,6 +18,51 @@ import copyVacinas from '../data/copy-vacinas-app.json'
 import { CORES_GOOGLE } from '../utils/coresGoogleCalendar.js'
 import { registrarEvento } from '../utils/eventos'
 
+const HORIZONTE_DIAS = 90 // só mostra expandido por padrão o que cabe nessa janela — resto fica atrás de "ver tudo"
+
+// Compara o calendário atual com o que já foi sincronizado (`mapaAtual`,
+// vindo de `googleEventosSemana`) e retorna só as operações necessárias —
+// mesma lógica usada tanto pra sincronizar de verdade quanto pra só saber
+// se há algo pendente (sem chamar a API do Google nesse segundo caso).
+function calcularOperacoesPendentes(dosesParaSync, mapaAtual, hoje) {
+  const semanasRelevantes = agruparPorSemana(dosesParaSync)
+    .filter((semana) => semana.doses.some((d) => d.status !== 'aplicada'))
+    .map((semana) => ({
+      chave: formatarDataISO(semana.inicioSemana),
+      inicioSemanaData: semana.inicioSemana,
+      inicioSemana: formatarDataISO(semana.inicioSemana),
+      fimSemana: formatarDataISO(semana.fimSemana),
+      doses: semana.doses,
+      totalInjecoes: semana.totalInjecoes,
+      composicao: semana.doses.map((d) => `${d.vacinaId}_${d.dose}`).sort().join('|'),
+    }))
+
+  const chaves = new Set([...Object.keys(mapaAtual), ...semanasRelevantes.map((s) => s.chave)])
+  const operacoes = []
+
+  for (const chave of chaves) {
+    const atual = mapaAtual[chave]
+    const alvo = semanasRelevantes.find((s) => s.chave === chave)
+
+    if (!atual && alvo) {
+      operacoes.push({ tipo: 'inserir', chave, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
+    } else if (atual && !alvo) {
+      operacoes.push({ tipo: 'excluir', chave, eventId: atual.eventId })
+    } else if (atual.composicao !== alvo.composicao) {
+      if (alvo.inicioSemanaData < hoje) {
+        // semana já passada: recria em vez de atualizar
+        operacoes.push({ tipo: 'excluir', chave, eventId: atual.eventId })
+        operacoes.push({ tipo: 'inserir', chave, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
+      } else {
+        operacoes.push({ tipo: 'atualizar', chave, eventId: atual.eventId, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
+      }
+    }
+    // composição igual → nada a fazer, sem chamada à API
+  }
+
+  return { operacoes, semanasRelevantes }
+}
+
 export default function Calendario({ crianca, filhoId, emailResponsavel2, googleAccessToken, onGoogleToken }) {
   const [aba, setAba] = useState('meu') // 'sugerido' | 'meu'
   const [sincronizando, setSincronizando] = useState(false)
@@ -25,6 +71,7 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
   const [doseParaConfirmar, setDoseParaConfirmar] = useState(null) // { vacinaId, dose, vacinaNome }
   const [dataConfirmacao, setDataConfirmacao] = useState('')
   const [detalhe, setDetalhe] = useState(null) // { vacina, dose }
+  const [mostrarTudo, setMostrarTudo] = useState(false)
 
   function abrirDetalhe(vacinaBase, dose) {
     setDetalhe({ vacina: vacinaBase, dose: dose || null })
@@ -32,6 +79,24 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
 
   const doses = gerarDosesDaCrianca(crianca.dataNascimento, crianca.datasAplicacao || {}, crianca.esquemaEscolhido || {})
   const dias = agruparPorDiaDeVisita(doses)
+
+  // Por padrão só mostra o que precisa de atenção: doses atrasadas (sempre
+  // no passado, sempre pendentes) e doses pendentes dentro dos próximos
+  // HORIZONTE_DIAS — o resto (já aplicado, ou muito no futuro) fica atrás
+  // de "Ver calendário completo", pra não afogar a tela com anos de doses.
+  const horizonte = somarDias(new Date(), HORIZONTE_DIAS)
+  const diasProximos = dias.filter(
+    (dia) => dia.doses.some((d) => d.status !== 'aplicada') && dia.data <= horizonte
+  )
+  const diasParaMostrar = mostrarTudo ? dias : diasProximos
+  const temDiasOcultos = !mostrarTudo && diasProximos.length < dias.length
+
+  // Recalcula localmente (sem chamar a API do Google) se há algo pra
+  // sincronizar — mesma comparação que `sincronizarAgenda` já faz de
+  // verdade, só usada aqui pra decidir o peso visual da barra.
+  const hojeMeiaNoite = new Date()
+  hojeMeiaNoite.setHours(0, 0, 0, 0)
+  const temPendencia = calcularOperacoesPendentes(doses, crianca.googleEventosSemana || {}, hojeMeiaNoite).operacoes.length > 0
 
   // Vacinas com diferença real de esquema entre SUS e particular —
   // mostradas como decisão explícita, uma vez cada, no topo do "Meu calendário".
@@ -107,40 +172,7 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
       const hoje = new Date()
       hoje.setHours(0, 0, 0, 0)
 
-      const semanasRelevantes = agruparPorSemana(dosesParaSync)
-        .filter((semana) => semana.doses.some((d) => d.status !== 'aplicada'))
-        .map((semana) => ({
-          chave: formatarDataISO(semana.inicioSemana),
-          inicioSemanaData: semana.inicioSemana,
-          inicioSemana: formatarDataISO(semana.inicioSemana),
-          fimSemana: formatarDataISO(semana.fimSemana),
-          doses: semana.doses,
-          totalInjecoes: semana.totalInjecoes,
-          composicao: semana.doses.map((d) => `${d.vacinaId}_${d.dose}`).sort().join('|'),
-        }))
-
-      const chaves = new Set([...Object.keys(mapaAtual), ...semanasRelevantes.map((s) => s.chave)])
-      const operacoes = []
-
-      for (const chave of chaves) {
-        const atual = mapaAtual[chave]
-        const alvo = semanasRelevantes.find((s) => s.chave === chave)
-
-        if (!atual && alvo) {
-          operacoes.push({ tipo: 'inserir', chave, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
-        } else if (atual && !alvo) {
-          operacoes.push({ tipo: 'excluir', chave, eventId: atual.eventId })
-        } else if (atual.composicao !== alvo.composicao) {
-          if (alvo.inicioSemanaData < hoje) {
-            // semana já passada: recria em vez de atualizar
-            operacoes.push({ tipo: 'excluir', chave, eventId: atual.eventId })
-            operacoes.push({ tipo: 'inserir', chave, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
-          } else {
-            operacoes.push({ tipo: 'atualizar', chave, eventId: atual.eventId, inicioSemana: alvo.inicioSemana, fimSemana: alvo.fimSemana, doses: alvo.doses, totalInjecoes: alvo.totalInjecoes })
-          }
-        }
-        // composição igual → nada a fazer, sem chamada à API
-      }
+      const { operacoes, semanasRelevantes } = calcularOperacoesPendentes(dosesParaSync, mapaAtual, hoje)
 
       if (operacoes.length === 0) {
         setSincMsg({ tipo: 'ok', texto: 'Sua Agenda Google já está atualizada.' })
@@ -217,9 +249,21 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
       )}
 
       {aba === 'meu' && (
-        <div style={{ marginTop: 20 }}>
-          <button className="tap-scale" onClick={() => sincronizarAgenda()} disabled={sincronizando} style={btnSync}>
-            {sincronizando ? 'Sincronizando…' : '📅  Sincronizar com Google Agenda'}
+        <div style={{ marginTop: 28 }}>
+          <button
+            className="tap-scale"
+            onClick={() => sincronizarAgenda()}
+            disabled={sincronizando}
+            style={temPendencia ? barraSyncPendenteStyle : barraSyncOkStyle}
+          >
+            <span>
+              {sincronizando
+                ? 'Sincronizando…'
+                : temPendencia
+                  ? 'Alterações pendentes no Google Agenda'
+                  : 'Sincronizado com Google Agenda ✓'}
+            </span>
+            {!sincronizando && temPendencia && <b style={{ fontSize: 13 }}>Sincronizar →</b>}
           </button>
           {sincMsg && (
             <p style={{
@@ -234,21 +278,24 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
             <button
               className="tap-scale"
               onClick={() => setWizardAberto(true)}
-              style={entradaDecisaoStyle}
+              style={{ ...entradaDecisaoStyle, marginTop: 28 }}
             >
-              <div style={{ textAlign: 'left' }}>
-                <p style={decisionLabelStyle}>Decisões de esquema</p>
-                <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>
-                  {vacinasComDecisao.length} vacinas com escolha SUS × Particular disponível
-                </b>
+              <div style={{ textAlign: 'left', display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <span style={{ fontSize: 18, flexShrink: 0 }}>📋</span>
+                <div>
+                  <p style={entradaDecisaoLabelStyle}>Decisões de esquema</p>
+                  <b style={{ fontFamily: 'var(--font-display)', fontSize: 14 }}>
+                    {vacinasComDecisao.length} vacinas com escolha SUS × Particular disponível
+                  </b>
+                </div>
               </div>
-              <span style={{ fontSize: 14, color: 'var(--amber-deep)', flexShrink: 0, marginLeft: 10 }}>
+              <span style={{ fontSize: 14, color: 'var(--blue-deep)', flexShrink: 0, marginLeft: 10 }}>
                 Revisar →
               </span>
             </button>
           )}
 
-          {dias.map((dia) => (
+          {diasParaMostrar.map((dia) => (
             <div key={formatarDataISO(dia.data)} style={cardStyle}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 4 }}>
                 <b style={{ fontFamily: 'var(--font-display)', fontSize: 15 }}>{dia.data.toLocaleDateString('pt-BR')}</b>
@@ -260,7 +307,11 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
                 return (
                   <div
                     key={`${d.vacinaId}_${d.dose}`}
-                    style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '9px 0' }}
+                    style={{
+                      display: 'flex', alignItems: 'center', gap: 12, padding: '9px 8px',
+                      margin: '0 -8px', borderRadius: 10,
+                      background: aplicada ? 'var(--green-tint)' : 'transparent',
+                    }}
                   >
                     <span
                       onClick={() => (aplicada ? desmarcar(d.vacinaId, d.dose) : abrirConfirmacao(d.vacinaId, d.dose, d.vacinaNome))}
@@ -278,8 +329,7 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
                     >
                       <span style={{
                         display: 'block', fontSize: 13.5,
-                        color: aplicada ? 'var(--ink-soft)' : d.status === 'atrasada' ? 'var(--red-deep)' : 'var(--ink)',
-                        textDecoration: aplicada ? 'line-through' : 'none',
+                        color: aplicada ? 'var(--ink)' : d.status === 'atrasada' ? 'var(--red-deep)' : 'var(--ink)',
                       }}>
                         {d.vacinaNome} — {formatarRotuloDose(d.dose)}
                       </span>
@@ -299,6 +349,23 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
               })}
             </div>
           ))}
+
+          {diasParaMostrar.length === 0 && (
+            <p style={{ fontSize: 13, color: 'var(--ink-soft)', textAlign: 'center', padding: '20px 0' }}>
+              Nada pendente nos próximos {HORIZONTE_DIAS} dias.
+            </p>
+          )}
+
+          {temDiasOcultos && (
+            <button className="tap-scale" onClick={() => setMostrarTudo(true)} style={btnVerTudoStyle}>
+              Ver calendário completo
+            </button>
+          )}
+          {mostrarTudo && (
+            <button className="tap-scale" onClick={() => setMostrarTudo(false)} style={btnVerTudoStyle}>
+              Mostrar só o que está próximo
+            </button>
+          )}
         </div>
       )}
 
@@ -359,10 +426,21 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
 
 const cardStyle = { background: 'var(--card)', borderRadius: 18, padding: 16, marginBottom: 12, boxShadow: 'var(--shadow-card)' }
 const badgeStyle = { fontSize: 10, fontWeight: 800, padding: '4px 10px', borderRadius: 100, background: 'var(--amber-tint)', color: 'var(--amber-deep)' }
-const btnSync = {
-  width: '100%', border: 'none', borderRadius: 14, padding: 13, marginTop: 16,
-  background: 'var(--blue)', fontWeight: 700, fontSize: 13, cursor: 'pointer',
+const barraSyncBase = {
+  width: '100%', border: 'none', borderRadius: 14, padding: '12px 15px',
+  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+  fontWeight: 700, fontSize: 12.5, cursor: 'pointer', textAlign: 'left',
+}
+const barraSyncOkStyle = {
+  ...barraSyncBase, background: 'var(--green-tint)', color: 'var(--green-deep)',
+}
+const barraSyncPendenteStyle = {
+  ...barraSyncBase, background: 'var(--amber-tint)', color: 'var(--amber-deep)',
   boxShadow: 'var(--shadow-card)',
+}
+const btnVerTudoStyle = {
+  width: '100%', padding: 13, borderRadius: 14, border: '1px solid var(--line)', marginTop: 4,
+  background: '#fff', color: 'var(--ink-soft)', fontWeight: 700, fontSize: 13, cursor: 'pointer',
 }
 function tabBtn(ativo) {
   return {
@@ -374,8 +452,12 @@ function tabBtn(ativo) {
 const entradaDecisaoStyle = {
   display: 'flex', justifyContent: 'space-between', alignItems: 'center',
   width: '100%', textAlign: 'left', cursor: 'pointer',
-  background: 'var(--amber-tint)', border: '1px solid #E8C596',
+  background: 'var(--blue-tint)', border: '1px solid var(--blue)',
   borderRadius: 16, padding: 15, marginBottom: 12, boxShadow: 'var(--shadow-card)',
+}
+const entradaDecisaoLabelStyle = {
+  fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase',
+  letterSpacing: '.05em', color: 'var(--ink-soft)', margin: '0 0 2px',
 }
 const decisionLabelStyle = {
   fontSize: 9.5, fontWeight: 800, textTransform: 'uppercase',

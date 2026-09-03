@@ -60,6 +60,7 @@ export default function App() {
   // Access token do Google (para sincronizar com a Agenda) — só vive em memória,
   // nunca persistido; expira em ~1h e é renovado sob demanda em Calendario.jsx.
   const [googleAccessToken, setGoogleAccessToken] = useState(null)
+  const [mostrarCadastroFilho, setMostrarCadastroFilho] = useState(false)
   const loginRegistradoRef = useRef(null)
 
   useEffect(() => {
@@ -155,20 +156,37 @@ export default function App() {
 
   return (
     <div style={{ paddingBottom: 80, minHeight: '100vh' }}>
-      {filhos.length > 1 && (
-        <div style={seletorStyle}>
-          {filhos.map((f) => (
-            <button
-              key={f.id}
-              className="tap-scale"
-              onClick={() => setFilhoAtivoId(f.id)}
-              style={{ border: 'none', background: 'none', padding: 0, cursor: 'pointer' }}
-              aria-label={f.nome}
-            >
-              <AvatarCrianca avatar={f.avatar} cor={f.cor} size={44} ativo={f.id === filhoAtivo.id} />
-            </button>
-          ))}
-        </div>
+      <div style={seletorStyle}>
+        {filhos.map((f) => (
+          <button
+            key={f.id}
+            className="tap-scale"
+            onClick={() => setFilhoAtivoId(f.id)}
+            style={{
+              border: 'none', background: 'none', padding: 0, cursor: 'pointer', flexShrink: 0,
+              opacity: f.id === filhoAtivo.id ? 1 : 0.6, transition: 'opacity 0.15s ease',
+            }}
+            aria-label={f.nome}
+          >
+            <AvatarCrianca avatar={f.avatar} cor={f.cor} size={56} ativo={f.id === filhoAtivo.id} />
+          </button>
+        ))}
+        <button
+          className="tap-scale"
+          onClick={() => setMostrarCadastroFilho(true)}
+          style={btnAdicionarFilhoStyle}
+          aria-label="Adicionar filho"
+        >
+          +
+        </button>
+      </div>
+
+      {mostrarCadastroFilho && (
+        <CadastroCrianca
+          contaExiste
+          onSalvo={(f) => { setFilhoAtivoId(f.id); setMostrarCadastroFilho(false) }}
+          onFechar={() => setMostrarCadastroFilho(false)}
+        />
       )}
 
       {aba === 'home' && <Home crianca={filhoAtivo} irPara={setAba} />}
@@ -201,7 +219,12 @@ export default function App() {
 }
 
 const seletorStyle = {
-  display: 'flex', gap: 10, padding: '14px 20px 0', overflowX: 'auto',
+  display: 'flex', gap: 10, padding: '14px 20px 0', overflowX: 'auto', alignItems: 'center',
+}
+const btnAdicionarFilhoStyle = {
+  width: 56, height: 56, borderRadius: '50%', flexShrink: 0, cursor: 'pointer',
+  border: '1.5px dashed var(--line)', background: 'none', color: 'var(--ink-soft)',
+  fontSize: 22, fontWeight: 700, lineHeight: 1,
 }
 
 function TelaCarregando() {

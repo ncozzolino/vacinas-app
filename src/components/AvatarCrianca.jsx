@@ -3,10 +3,13 @@
 // exigiria o plano pago, decisão já tomada de não ativar). A mesma cor
 // também vira a cor dos eventos desse filho no Google Agenda.
 
-import mascoteBoasvindas from '../assets/mascote-boasvindas.webp'
-import mascoteEspera from '../assets/mascote-espera.webp'
-import mascoteComemorando from '../assets/mascote-comemorando.webp'
-import mascoteAtencao from '../assets/mascote-atencao.webp'
+// Versões recortadas (rosto + ombros) das mesmas 4 fotos usadas em tela
+// cheia noutras partes do app — em círculo pequeno, a foto de corpo inteiro
+// fica malenquadrada; esse recorte é o mesmo tratamento já usado no ícone.
+import mascoteBoasvindas from '../assets/mascote-boasvindas-avatar.webp'
+import mascoteEspera from '../assets/mascote-espera-avatar.webp'
+import mascoteComemorando from '../assets/mascote-comemorando-avatar.webp'
+import mascoteAtencao from '../assets/mascote-atencao-avatar.webp'
 
 export const MASCOTES = {
   boasvindas: mascoteBoasvindas,
@@ -30,7 +33,7 @@ export default function AvatarCrianca({ avatar = 'boasvindas', cor = 'blue', siz
       <img
         src={MASCOTES[avatar] || MASCOTES.boasvindas}
         alt=""
-        style={{ width: '100%', height: '100%', objectFit: 'contain', padding: Math.round(size * 0.08) }}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       />
     </div>
   )
