@@ -13,13 +13,15 @@ import CadastroCrianca from './CadastroCrianca.jsx'
 
 const ROTULO_SEXO = { feminino: 'Feminino', masculino: 'Masculino' }
 
-export default function Perfil({ perfil, filhos, filhoAtivoId, onEscolherFilho }) {
+export default function Perfil({ perfil, filhos, filhoAtivoId, onEscolherFilho, souAdmin, onAbrirAdmin }) {
   const [nomeResponsavel, setNomeResponsavel] = useState(perfil?.nomeResponsavel || '')
   const [emailResponsavel2, setEmailResponsavel2] = useState(perfil?.emailResponsavel2 || '')
   const [salvandoNome, setSalvandoNome] = useState(false)
-  const [salvoNome, setSalvoNome] = useState(false)
   const [salvandoEmail, setSalvandoEmail] = useState(false)
-  const [salvoEmail, setSalvoEmail] = useState(false)
+  // Só começa aberto se ainda não tem valor salvo — quem já preencheu vê o
+  // resumo primeiro, e só reabre o campo se tocar em editar.
+  const [editandoNome, setEditandoNome] = useState(!perfil?.nomeResponsavel)
+  const [editandoEmail, setEditandoEmail] = useState(!perfil?.emailResponsavel2)
   const [sheetAberto, setSheetAberto] = useState(null) // null | 'novo' | { ...filho }
   const [statusNotif, setStatusNotif] = useState(null)
   const [ativandoNotif, setAtivandoNotif] = useState(false)
@@ -37,22 +39,20 @@ export default function Perfil({ perfil, filhos, filhoAtivoId, onEscolherFilho }
 
   async function salvarNomeResponsavel() {
     setSalvandoNome(true)
-    setSalvoNome(false)
     await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
       nomeResponsavel: nomeResponsavel || null,
     })
     setSalvandoNome(false)
-    setSalvoNome(true)
+    setEditandoNome(false)
   }
 
   async function salvarEmailResponsavel2() {
     setSalvandoEmail(true)
-    setSalvoEmail(false)
     await updateDoc(doc(db, 'criancas', auth.currentUser.uid), {
       emailResponsavel2: emailResponsavel2 || null,
     })
     setSalvandoEmail(false)
-    setSalvoEmail(true)
+    setEditandoEmail(false)
   }
 
   const foto = auth.currentUser?.photoURL
@@ -79,32 +79,60 @@ export default function Perfil({ perfil, filhos, filhoAtivoId, onEscolherFilho }
       </div>
 
       <div style={{ ...cardStyle, marginTop: 12 }}>
-        <label style={{ fontSize: 12, fontWeight: 600 }}>Seu nome</label>
-        <input
-          value={nomeResponsavel}
-          onChange={(e) => { setNomeResponsavel(e.target.value); setSalvoNome(false) }}
-          style={campoStyle}
-        />
-        <button className="tap-scale" onClick={salvarNomeResponsavel} disabled={salvandoNome} style={btnSalvarStyle}>
-          {salvandoNome ? 'Salvando…' : salvoNome ? 'Salvo ✓' : 'Salvar'}
-        </button>
+        {editandoNome ? (
+          <>
+            <label style={{ fontSize: 12, fontWeight: 600 }}>Seu nome</label>
+            <input
+              value={nomeResponsavel}
+              onChange={(e) => setNomeResponsavel(e.target.value)}
+              style={campoStyle}
+            />
+            <button className="tap-scale" onClick={salvarNomeResponsavel} disabled={salvandoNome} style={btnSalvarStyle}>
+              {salvandoNome ? 'Salvando…' : 'Salvar'}
+            </button>
+          </>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600 }}>Seu nome</label>
+              <p style={{ fontSize: 14, margin: '4px 0 0' }}>{nomeResponsavel}</p>
+            </div>
+            <button className="tap-scale" onClick={() => setEditandoNome(true)} style={btnEditarStyle} aria-label="Editar">
+              ✎
+            </button>
+          </div>
+        )}
       </div>
 
       <div style={{ ...cardStyle, marginTop: 12 }}>
-        <label style={{ fontSize: 12, fontWeight: 600 }}>E-mail do outro responsável</label>
-        <p style={{ fontSize: 11, color: 'var(--ink-soft)', margin: '2px 0 8px' }}>
-          Convidado nos eventos de todos os filhos da conta.
-        </p>
-        <input
-          type="email"
-          placeholder="Convidado nos eventos da agenda"
-          value={emailResponsavel2}
-          onChange={(e) => { setEmailResponsavel2(e.target.value); setSalvoEmail(false) }}
-          style={campoStyle}
-        />
-        <button className="tap-scale" onClick={salvarEmailResponsavel2} disabled={salvandoEmail} style={btnSalvarStyle}>
-          {salvandoEmail ? 'Salvando…' : salvoEmail ? 'Salvo ✓' : 'Salvar'}
-        </button>
+        {editandoEmail ? (
+          <>
+            <label style={{ fontSize: 12, fontWeight: 600 }}>E-mail do outro responsável</label>
+            <p style={{ fontSize: 11, color: 'var(--ink-soft)', margin: '2px 0 8px' }}>
+              Convidado nos eventos de todos os filhos da conta.
+            </p>
+            <input
+              type="email"
+              placeholder="Convidado nos eventos da agenda"
+              value={emailResponsavel2}
+              onChange={(e) => setEmailResponsavel2(e.target.value)}
+              style={campoStyle}
+            />
+            <button className="tap-scale" onClick={salvarEmailResponsavel2} disabled={salvandoEmail} style={btnSalvarStyle}>
+              {salvandoEmail ? 'Salvando…' : 'Salvar'}
+            </button>
+          </>
+        ) : (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600 }}>E-mail do outro responsável</label>
+              <p style={{ fontSize: 14, margin: '4px 0 0' }}>{emailResponsavel2}</p>
+            </div>
+            <button className="tap-scale" onClick={() => setEditandoEmail(true)} style={btnEditarStyle} aria-label="Editar">
+              ✎
+            </button>
+          </div>
+        )}
       </div>
 
       <div style={{ ...cardStyle, marginTop: 12 }}>
@@ -155,10 +183,20 @@ export default function Perfil({ perfil, filhos, filhoAtivoId, onEscolherFilho }
         + Adicionar filho
       </button>
 
+      {souAdmin && (
+        <button
+          className="tap-scale"
+          onClick={onAbrirAdmin}
+          style={{ marginTop: 20, width: '100%', padding: 13, borderRadius: 14, border: '1px solid var(--line)', background: 'none', color: 'var(--ink-soft)', fontWeight: 600, fontSize: 13, cursor: 'pointer' }}
+        >
+          Painel de administração
+        </button>
+      )}
+
       <button
         className="tap-scale"
         onClick={() => signOut(auth)}
-        style={{ marginTop: 20, width: '100%', padding: 14, borderRadius: 14, border: '1px solid var(--line)', background: '#fff', fontWeight: 600, cursor: 'pointer' }}
+        style={{ marginTop: 12, width: '100%', padding: 14, borderRadius: 14, border: '1px solid var(--line)', background: '#fff', fontWeight: 600, cursor: 'pointer' }}
       >
         Sair
       </button>

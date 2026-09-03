@@ -8,9 +8,13 @@ service cloud.firestore {
     // precisaria ser filtrado manualmente em toda query.
     match /criancas/{uid} {
       allow read, write: if request.auth != null && request.auth.uid == uid;
+      // Painel de admin precisa contar contas/filhos de todo mundo, não só
+      // a própria — leitura (não escrita) liberada só pro e-mail admin.
+      allow read: if request.auth != null && request.auth.token.email == 'nicollascn@gmail.com';
 
       match /filhos/{filhoId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
+        allow read: if request.auth != null && request.auth.token.email == 'nicollascn@gmail.com';
       }
 
       // Assinaturas de push (Web Push) — nível de conta, não de filho: um
@@ -18,6 +22,20 @@ service cloud.firestore {
       match /pushSubscriptions/{subId} {
         allow read, write: if request.auth != null && request.auth.uid == uid;
       }
+    }
+
+    // Interruptor de acesso da beta — todo mundo lê (pra saber se está
+    // liberado), só o admin escreve.
+    match /config/acesso {
+      allow read: if request.auth != null;
+      allow write: if request.auth != null && request.auth.token.email == 'nicollascn@gmail.com';
+    }
+
+    // Eventos de uso (login, sincronização) pro painel de admin — cada
+    // usuário só registra os próprios eventos, só o admin lê o histórico.
+    match /eventosApp/{eventoId} {
+      allow create: if request.auth != null && request.resource.data.uid == request.auth.uid;
+      allow read: if request.auth != null && request.auth.token.email == 'nicollascn@gmail.com';
     }
   }
 }

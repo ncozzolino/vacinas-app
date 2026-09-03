@@ -24,6 +24,10 @@ export const auth = getAuth(app)
 export const db = getFirestore(app)
 export const storage = getStorage(app)
 
+// Único e-mail com acesso ao painel de administração e a mudar o gate de
+// acesso da beta — mesmo valor espelhado em firestore.rules.
+export const ADMIN_EMAIL = 'nicollascn@gmail.com'
+
 // Escopo do Google Calendar solicitado já no login com Google,
 // pra não precisar de uma segunda autorização depois.
 export const googleProvider = new GoogleAuthProvider()

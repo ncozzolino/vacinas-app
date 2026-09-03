@@ -15,6 +15,7 @@ import VaccineDetailSheet, { formatarRotuloDose } from '../components/VaccineDet
 import vacinasData from '../data/pni-calendario-vacinal.json'
 import copyVacinas from '../data/copy-vacinas-app.json'
 import { CORES_GOOGLE } from '../utils/coresGoogleCalendar.js'
+import { registrarEvento } from '../utils/eventos'
 
 export default function Calendario({ crianca, filhoId, emailResponsavel2, googleAccessToken, onGoogleToken }) {
   const [aba, setAba] = useState('meu') // 'sugerido' | 'meu'
@@ -159,6 +160,7 @@ export default function Calendario({ crianca, filhoId, emailResponsavel2, google
       })
       const resultado = await resp.json()
       if (!resp.ok) throw new Error(resultado.erro || 'Falha ao sincronizar.')
+      registrarEvento('sync_calendario', auth.currentUser.uid)
 
       const patch = {}
       for (const r of resultado.resultados) {
